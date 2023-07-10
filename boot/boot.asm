@@ -15,10 +15,26 @@ _start:
     mov ax, 3
     int 0x10        ; 调用 0x10 中断
 
-    mov si, msg     ; 打印字符串
+    ; 加载 setup.asm 代码到 0x500。
+    mov si, loading_setup_message
     call print
-
+    call load_setup                     ; 加载 setup 代码到 0x500 位置。
+    xchg bx, bx     ; bochs 断点。
     jmp $           ; 停在这里
+
+; 读取 setup.asm 的程序到内存中。
+load_setup:
+    mov ch, 0       ; 0 柱面。
+    mov dh, 0       ; 0 磁头。
+    mov cl, 2       ; 2 扇区。
+    mov bx, 0x500   ; 数据往哪读。
+
+    mov ah, 0x02    ; 读盘操作。
+    mov al, 1       ; 连续读 1 个扇区。
+    mov dl, 0x80    ; 驱动器编号，软盘编号 0x00，硬盘编号从 0x80 开始。
+
+    int 0x13
+    ret
 
 ; print函数，用于向屏幕输出字符。
 ; 调用方式:
@@ -39,13 +55,12 @@ print:
 .done:
     ret             ; 结束返回。
 
-; 定义一个 "hello world" 字符串。
-msg:
-    db "hello, world", 10, 13, 0
+loading_setup_message:
+    db "[processing]: loading setup...", 10, 13, 0
         ; 10(0x0a) 对应换行符 '\n'，表示将光标下移一行
         ; 13(0x0d) 对应回车符 '\r'，表示表示将光标移动到当前行的开头。
 
 ; 中间都补充 0。
 times 510 - ($ - $$) db 0
-; 一个扇区要以 0x55aa 结尾，BIOS才能识别。
+; 一个扇区要以 0x55aa 结尾，bios 才能识别。
 db 0x55, 0xaa
