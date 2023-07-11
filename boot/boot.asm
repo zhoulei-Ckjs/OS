@@ -1,13 +1,19 @@
 ; BIOS程序会将磁盘的第一个扇区的 512 字节加载到 0x7c00 处，为引导程序
-[ORG  0x7c00]       ; 告诉汇编器：假定把接下来的机器码假定是加载到内存地址 0x7C00 处执行的。
-                    ; 这样下面的代码就是以 0x7c00 为基址的地址开始编写，即第一条指令汇编后的地址为 0x7C00。
+%define BOOT_LOAD_ADDR 0x7C00
+
+[ORG BOOT_LOAD_ADDR]    ; 告诉汇编器：假定把接下来的机器码假定是加载到内存地址 0x7C00 处执行的。
+                        ; 这样下面的代码就是以 0x7c00 为基址的地址开始编写，即第一条指令汇编后的地址为 0x7C00。
+
+[SECTION .data]
+LOAD_SETUP_ADDR equ 0x7E00                  ; setup 加载到这里，是由 boot 进行跳转的地址。
+BOOT_SETUP_STACK_TOP equ BOOT_LOAD_ADDR     ; boot 和 setup 程序的栈顶位置。
 
 ; 代码段
 [SECTION .text]
 [BITS 16]           ; 编码方式
 global _start       ; 声明一个全局函数
 _start:
-    mov sp, 0x8000  ; 设置 boot 的栈顶位置。
+    mov sp, BOOT_SETUP_STACK_TOP            ; 设置栈顶位置。
     xchg bx, bx     ; bochs 断点。
 
     ; 当值为3时，这个调用的功能是设置视频模式。具体来说，视频模式3对应于文本模式 25行×80列，16色，8页。
@@ -15,10 +21,10 @@ _start:
     mov ax, 3
     int 0x10        ; 调用 0x10 中断
 
-    ; 加载 setup.asm 代码到 0x500。
+    ; 加载 setup 代码到 LOAD_SETUP_ADDR。
     mov si, loading_setup_message
     call print
-    call load_setup                     ; 加载 setup 代码到 0x500 位置。
+    call load_setup                 ; 加载 setup 代码到 LOAD_SETUP_ADDR 位置。
     xchg bx, bx     ; bochs 断点。
     jmp $           ; 停在这里
 
@@ -27,7 +33,7 @@ load_setup:
     mov ch, 0       ; 0 柱面。
     mov dh, 0       ; 0 磁头。
     mov cl, 2       ; 2 扇区。
-    mov bx, 0x500   ; 数据往哪读。
+    mov bx, LOAD_SETUP_ADDR         ; 数据往哪读。
 
     mov ah, 0x02    ; 读盘操作。
     mov al, 1       ; 连续读 1 个扇区。
