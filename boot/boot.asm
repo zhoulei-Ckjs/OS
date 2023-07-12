@@ -26,6 +26,7 @@ _start:
     call print
     call load_setup                 ; 加载 setup 代码到 LOAD_SETUP_ADDR 位置。
     xchg bx, bx     ; bochs 断点。
+    jmp LOAD_SETUP_ADDR             ; 跳转到 setup。
     jmp $           ; 停在这里
 
 ; 读取 setup.asm 的程序到内存中。
