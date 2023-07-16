@@ -7,7 +7,7 @@ GDT_MEMORY_BASE equ 0           ; 内存开始的位置：段地址
 GDT_MEMORY_LIMIT equ 0xFFFFF    ; 段界限，20 位寻址空间的最大值。
                                 ; 实际上如果以 4K 为单位，即每 bit 代表 4K，则可以访问 2^32 = 4G 的内存。
                                 ; 以什么为单位是 gdt 表中每个表项指定的。
-code_selector equ (1 << 3)      ; 代码段选择子，左移 3 位是最后三位是属性。
+code_selector equ (1 << 3)      ; 代码段选择子，标号为 1，最后 3bit 为属性。
                                 ; 选择子，进入保护模式就是通过选择子访问地址的，cs:ip 的访问时 cs 指定的选择子，
                                 ; 通过选择子获取基址，然后加上 ip 即访问地址。
 data_selector equ (2 << 3)      ; 数据段选择子
@@ -54,33 +54,18 @@ _start:
 
     lgdt [gdt_ptr]              ; 加载 gdt 表。
 
-    mov si, msg
-    call print
+    ; 启动保护模式
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
 
-    xchg bx, bx
+    ; 用跳转来刷新缓存，启用保护模式
+    jmp dword code_selector:protect_mode
 
-    jmp $                     ; 停在这里
-
-; print函数，用于向屏幕输出字符。
-; 调用方式:
-;   mov     si, msg   ; 1 传入字符串
-;   call    print     ; 2 调用
-print:
-    mov ah, 0x0e    ; 指定要使用的功能是 0x0e，0x0e 表示在 TTY 模式下写字符。
-    mov bh, 0       ; 表示在第 0 个页面输出字符。
-    mov bl, 0x01    ; 蓝色字符，黑色背景。
-.loop:
-    mov al, [si]    ; 要输出的字符。
-    cmp al, 0       ; 字符串不结束就一直打印。
-    jz .done        ; 字符串结束，跳转到 .done。
-    int 0x10        ; 调用bios的10号中断。
-
-    inc si
-    jmp .loop
-.done:
-    ret             ; 结束返回。
-
-[SECTION .data]
-[BITS 16]
-msg:
-    db "hello, world", 10, 13, 0
+[bits 32]
+protect_mode:
+    ; 在保护模式下，bios 提供的中断程序就不能用了。
+    ; 一个原因是因为实模式下一个中断向量占 4B，而保护模式下一个中断向量占 8B，
+    ; 首先位数就不同，所以不能用 print 调用 int 0x10 来输出文本了。
+    xchg bx, bx                 ; bochs 断点
+    jmp $                       ; 停在这里
