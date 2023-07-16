@@ -45,8 +45,20 @@ gdt_ptr:                        ; 加载gdt表用 gdt_ptr 指针
 [BITS 16]
 global _start
 _start:
+    cli                         ; 关闭中断。
+
+    ; 打开 A20 线
+    in al, 92h
+    or al, 00000010b
+    out 92h, al
+
+    lgdt [gdt_ptr]              ; 加载 gdt 表。
+
     mov si, msg
     call print
+
+    xchg bx, bx
+
     jmp $                     ; 停在这里
 
 ; print函数，用于向屏幕输出字符。
