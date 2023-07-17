@@ -47,7 +47,7 @@ global _start
 _start:
     cli                         ; 关闭中断。
 
-    ; 打开 A20 线
+    ; 打开 A20 线，开启后可以访问 1M 以上的内存。
     in al, 92h
     or al, 00000010b
     out 92h, al
@@ -55,17 +55,30 @@ _start:
     lgdt [gdt_ptr]              ; 加载 gdt 表。
 
     ; 启动保护模式
-    mov eax, cr0
-    or eax, 1
-    mov cr0, eax
+    mov eax, cr0                ; 读取 CR0 控制寄存器。
+    or eax, 1                   ; 设置 PE 位（位0），开启保护模式。
+    mov cr0, eax                ; 写回 CR0，正式开启保护模式。
 
     ; 用跳转来刷新缓存，启用保护模式
     jmp dword code_selector:protect_mode
+        ; 使用段选择子进行远跳转，会更新 cs 值，cs = code_selector。
+        ; 这句话在实模式下不能使用，实模式用 基址:偏移 进行跳转，而不是 选择子:偏移。
 
 [bits 32]
 protect_mode:
     ; 在保护模式下，bios 提供的中断程序就不能用了。
     ; 一个原因是因为实模式下一个中断向量占 4B，而保护模式下一个中断向量占 8B，
     ; 首先位数就不同，所以不能用 print 调用 int 0x10 来输出文本了。
+
+    ; 初始化段寄存器
+    ; 进入保护模式后，段寄存器不再使用段地址，而是用 selector 查 GDT，获取段基址、限制、访问权限等。
+    ; 如果你不重载这些段寄存器，它们仍然保存着实模式的段地址，会导致访问内存异常或严重错误。
+    mov ax, data_selector
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
     xchg bx, bx                 ; bochs 断点
     jmp $                       ; 停在这里
