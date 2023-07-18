@@ -2,11 +2,23 @@ BUILD:=./build
 
 HD_IMG_NAME:= "hd.img"
 
-all: ${BUILD}/boot/boot.o ${BUILD}/boot/setup.o
+all: ${BUILD}/boot/boot.o ${BUILD}/boot/setup.o ${BUILD}/system.bin
 	$(shell rm -rf $(HD_IMG_NAME))
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(HD_IMG_NAME)
 	dd if=${BUILD}/boot/boot.o of=${HD_IMG_NAME} bs=512 seek=0 count=1 conv=notrunc
 	dd if=${BUILD}/boot/setup.o of=$(HD_IMG_NAME) bs=512 seek=1 count=1 conv=notrunc
+	dd if=${BUILD}/system.bin of=$(HD_IMG_NAME) bs=512 seek=2 count=1 conv=notrunc
+
+${BUILD}/system.bin : ${BUILD}/kernel.bin
+	objcopy -O binary ${BUILD}/kernel.bin ${BUILD}/system.bin
+	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
+
+# -Ttext 0x00	把程序的代码段（也就是 .text 段）从内存地址 0x00 开始加载。
+${BUILD}/kernel.bin: ${BUILD}/boot/head.o
+	ld -m elf_i386 $^ -o $@ -Ttext 0x00
+
+${BUILD}/boot/head.o : boot/head.asm
+	nasm -f elf32 -g $< -o $@
 
 ${BUILD}/boot/%.o: boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot)
@@ -15,6 +27,7 @@ ${BUILD}/boot/%.o: boot/%.asm
 clean:
 	$(shell rm -rf ${BUILD})
 	$(shell rm -rf hd.img.lock)
+	${shell rm -rf hd.img}
 
 bochs: all
 	bochs -q -f bochsrc
