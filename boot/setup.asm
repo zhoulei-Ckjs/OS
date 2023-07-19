@@ -80,5 +80,70 @@ protect_mode:
     mov gs, ax
     mov ss, ax
 
+    mov ecx, 2      ; 从哪个扇区开始读，lba 读硬盘方式是以下标 0 开始的
+    mov bx, 1       ; 读取扇区数量
+    call read_disk  ; 读取磁盘
+
     xchg bx, bx                 ; bochs 断点
     jmp $                       ; 停在这里
+
+; LBA(Logical Block Addressing) 方式读取磁盘。
+; 使用方式：
+;    mov ecx, 1                 ; 从哪个扇区开始读，LBA读硬盘方式是以下标 0 开始的
+;    mov bl, 1                  ; 读取扇区数量
+read_disk:
+    ; 0x1F2 8bit 指定读取或写入的扇区数
+    xchg bx, bx
+    mov dx, 0x1F2
+    mov al, bl                  ; 扇区数
+    out dx, al                  ; 向 0x1F2 端口发送要读取的扇区数
+
+    ; 0x1F3 8bit，指定了待读取扇区开始数的 0-7 位。
+    mov dx, 0x1F3
+    mov eax, ecx
+    out dx, al                  ; 拿到待读取扇区的低 8 位。
+
+    ; 0x1F4 8bit，指定了待读取扇区开始数的 8-15 位。
+    mov dx, 0x1F4
+    shr eax, 8                  ; 右移 8 位。
+    out dx, al
+
+    ; 0x1F5 8bit，指定了待读取扇区开始数的 16-23 位。
+    mov dx, 0x1F5
+    shr eax, 8
+    out dx, al
+
+    ; 0x1F6 8bit
+    ; bit: |  7  |     6     |  5  |        4         |     3 2 1 0     |
+    ;      |  1  |  chs = 0  |  1  |  0: Master Disk  |  24-27 bits of  |
+    ;      |     |  lba = 1  |     |  1: Slave Disk   |   lba address   |
+    mov dx, 0x1F6
+    shr eax, 8
+    and al, 0x0F                ; 高 4 位清 0，低 4 位保留地址。
+    or al, 0xE0                 ; 高 4 位置为 0b1110。
+    out dx, al
+
+    ; 0x1F7 8bit，命令或状态端口
+    mov dx, 0x1F7
+    mov al, 0x20                ; 发送读盘命令
+    out dx, al
+
+.read_check:
+    ; 检测硬盘状态
+    mov dx, 0x1F7
+    in al, dx
+    and al, 0x88                ; 取硬盘状态的第 3、7 位
+    cmp al, 0x08                ; 硬盘数据准备好了且不忙了
+    jnz .read_check             ; 否则就一直检查下去
+
+    ; 从0x1F0 读数据
+    mov dx, 0x1F0
+    mov cx, 256                 ; 要循环 256 次，每次读 2 字节
+    mov edi, 0x9000
+
+.read_data:
+    in ax, dx                   ; 读取 2 字节
+    mov [edi], ax               ; 放到 edi 的位置
+    add edi, 2
+    loop .read_data
+    ret
