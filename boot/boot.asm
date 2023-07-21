@@ -14,7 +14,6 @@ BOOT_SETUP_STACK_TOP equ BOOT_LOAD_ADDR     ; boot 和 setup 程序的栈顶位�
 global _start       ; 声明一个全局函数
 _start:
     mov sp, BOOT_SETUP_STACK_TOP            ; 设置栈顶位置。
-    xchg bx, bx     ; bochs 断点。
 
     ; 当值为3时，这个调用的功能是设置视频模式。具体来说，视频模式3对应于文本模式 25行×80列，16色，8页。
     ; 这通常被认为是典型的DOS文本模式。
@@ -25,7 +24,6 @@ _start:
     mov si, loading_setup_message
     call print
     call load_setup                 ; 加载 setup 代码到 LOAD_SETUP_ADDR 位置。
-    xchg bx, bx     ; bochs 断点。
     jmp LOAD_SETUP_ADDR             ; 跳转到 setup。
     jmp $           ; 停在这里
 

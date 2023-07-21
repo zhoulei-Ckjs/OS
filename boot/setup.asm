@@ -1,6 +1,5 @@
-; setup程序所在磁盘的 0 柱面 0 磁道 2 扇区。
-; setup 程序加载的内存起始地址。
-LOAD_SETUP_ADDR equ 0x7E00
+LOAD_SETUP_ADDR equ 0x7E00      ; setup 程序加载的内存起始地址。
+LOAD_KERNEL_ADDR equ 0x00       ; 内核加载的位置
 
 ; 构建 GDT 表所用数据
 GDT_MEMORY_BASE equ 0           ; 内存开始的位置：段地址
@@ -11,6 +10,7 @@ code_selector equ (1 << 3)      ; 代码段选择子，标号为 1，最后 3bit
                                 ; 选择子，进入保护模式就是通过选择子访问地址的，cs:ip 的访问时 cs 指定的选择子，
                                 ; 通过选择子获取基址，然后加上 ip 即访问地址。
 data_selector equ (2 << 3)      ; 数据段选择子
+
 
 [ORG LOAD_SETUP_ADDR]           ; setup 从 LOAD_SETUP_ADDR 地址开始汇编。
 
@@ -81,19 +81,19 @@ protect_mode:
     mov ss, ax
 
     mov ecx, 2      ; 从哪个扇区开始读，lba 读硬盘方式是以下标 0 开始的
-    mov bx, 1       ; 读取扇区数量
+    mov bl, 1       ; 读取扇区数量
+    mov edi, LOAD_KERNEL_ADDR   ; 将磁盘读取到内存位置
     call read_disk  ; 读取磁盘
 
-    xchg bx, bx                 ; bochs 断点
     jmp $                       ; 停在这里
 
 ; LBA(Logical Block Addressing) 方式读取磁盘。
 ; 使用方式：
-;    mov ecx, 1                 ; 从哪个扇区开始读，LBA读硬盘方式是以下标 0 开始的
-;    mov bl, 1                  ; 读取扇区数量
+;    mov ecx, 1                 ; 从哪个扇区开始读，LBA读硬盘方式是以下标 0 开始的。
+;    mov bl, 1                  ; 读取扇区数量。
+;    mov edi, <your destination>; 待读入的内存位置。
 read_disk:
     ; 0x1F2 8bit 指定读取或写入的扇区数
-    xchg bx, bx
     mov dx, 0x1F2
     mov al, bl                  ; 扇区数
     out dx, al                  ; 向 0x1F2 端口发送要读取的扇区数
@@ -138,8 +138,8 @@ read_disk:
 
     ; 从0x1F0 读数据
     mov dx, 0x1F0
-    mov cx, 256                 ; 要循环 256 次，每次读 2 字节
-    mov edi, 0x9000
+    movzx ecx, bl
+    shl ecx, 8                  ; 每块盘 512 字节，要循环 256 次，每次读 2 字节
 
 .read_data:
     in ax, dx                   ; 读取 2 字节
