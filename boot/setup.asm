@@ -80,6 +80,11 @@ protect_mode:
     mov gs, ax
     mov ss, ax
 
+    mov eax, 1                  ; 文字输出的行。
+    mov ebx, 0                  ; 文字输出的列。
+    mov esi, loading_kernel     ; 待输出字符串。
+    call print
+
     mov ecx, 2      ; 从哪个扇区开始读，lba 读硬盘方式是以下标 0 开始的
     mov bl, 1       ; 读取扇区数量
     mov edi, LOAD_KERNEL_ADDR   ; 将磁盘读取到内存位置
@@ -147,3 +152,35 @@ read_disk:
     add edi, 2
     loop .read_data
     ret
+
+; 调用方式：
+;   mov eax, <line you want to print>   ; 文字输出的行。
+;   mov ebx, <column you want to print> ; 文字输出的列。
+;   mov esi, <msg to be printed>        ; 待输出字符串。
+print:
+    ; 计算显示位置，每行 80 个字符，一个字符 2 个字节。
+    imul eax, 80
+    add eax, ebx
+    imul eax, 2
+
+    add eax, 0xB8000            ; 显存映射位置。
+    mov edi, eax
+
+    cld                         ; 使地址沿增加方向改变。
+    mov ah, 0xC                 ; 黑底红字。
+
+.show:
+    lodsb                       ; 从 ds:si 中读取 1 个字符到 al 中。
+    test al, al                 ; 用于判断 al 是否为 0，若是 0 则会将 ZF 置为 1。
+    jz .done                    ; 若 ZF 为 1，跳转到 .done。
+    mov [gs:edi], ax            ; 将字符放到视频地址。
+    add edi, 2                  ; 增加 2 个字节。
+    jmp .show
+.done:
+    ret
+
+[SECTION .data]
+[BITS 32]
+
+loading_kernel:
+    db "[setup.asm] : loading kernel ...", 0
