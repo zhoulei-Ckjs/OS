@@ -19,10 +19,12 @@ ${BUILD}/kernel.bin: ${BUILD}/boot/head.o
 
 ${BUILD}/boot/head.o : boot/head.asm
 	nasm -f elf32 -g $< -o $@
+	# -f elf32	输出格式为 elf32，生成的是 ELF 目标文件（.o），可用于 Linux 平台下与 C 一起链接成可执行程序。
 
 ${BUILD}/boot/%.o: boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot)
-	nasm $< -o $@
+	nasm -f bin $< -o $@
+	# -f bin 	裸机二进制格式，编译结果是一个纯二进制文件，没有段信息、没有调试信息，也无法被链接器 ld 使用。
 
 clean:
 	$(shell rm -rf ${BUILD})

@@ -1,3 +1,7 @@
-dw 0x55aa
-times 508 db 0x66
-dw 0x55aa
+[SECTION .text]
+[BITS 32]
+global _start
+_start:
+    xchg bx, bx
+    xchg bx, bx
+    jmp $
