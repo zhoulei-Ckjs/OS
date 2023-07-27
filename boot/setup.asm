@@ -190,3 +190,5 @@ print:
 
 loading_kernel:
     db "[setup.asm] : loading kernel ...", 0
+test_abc:
+    db "[setup.asm] : now, jumping to kernel ..." 0     # 这里少写了","，导致 jumping_to_kernel 没编译出来

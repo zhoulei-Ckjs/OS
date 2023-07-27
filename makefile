@@ -23,8 +23,9 @@ ${BUILD}/boot/head.o : boot/head.asm
 
 ${BUILD}/boot/%.o: boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot)
-	nasm -f bin -D SYSTEM_SECTORS=${SYSTEM_SECTORS} $< -o $@
+	nasm -f bin -w+error -D SYSTEM_SECTORS=${SYSTEM_SECTORS} $< -o $@
 	# -f bin 	裸机二进制格式，编译结果是一个纯二进制文件，没有段信息、没有调试信息，也无法被链接器 ld 使用。
+	# -w+error	让警告变为返回值非 0，让 Make 报错。
 
 clean:
 	$(shell rm -rf ${BUILD})
