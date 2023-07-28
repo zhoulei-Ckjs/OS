@@ -85,6 +85,7 @@ protect_mode:
     mov gs, ax
     mov ss, ax
 
+    ; 打印 “加载内核”
     mov eax, 1                  ; 文字输出的行。
     mov ebx, 0                  ; 文字输出的列。
     mov esi, loading_kernel     ; 待输出字符串。
@@ -94,6 +95,20 @@ protect_mode:
     mov bl, SYSTEM_SECTORS      ; 读取扇区数量
     mov edi, LOAD_KERNEL_ADDR   ; 将磁盘读取到内存位置
     call read_disk  ; 读取磁盘
+
+    ; 打印 “内核加载完成”
+    mov eax, 2                  ; 文字输出的行。
+    mov ebx, 0                  ; 文字输出的列。
+    mov esi, done_loading       ; 待输出字符串。
+    call print
+
+
+    ; 打印 “跳转到内核”
+    mov eax, 3
+    mov ebx, 0
+    xchg bx, bx
+    mov esi, jumping_to_kernel
+    call print
 
     jmp dword code_selector:LOAD_KERNEL_ADDR
     ud2             ; 如果跳转失败或者控制流莫名其妙回来了，就触发非法指令异常。
@@ -190,5 +205,7 @@ print:
 
 loading_kernel:
     db "[setup.asm] : loading kernel ...", 0
-test_abc:
-    db "[setup.asm] : now, jumping to kernel ..." 0     # 这里少写了","，导致 jumping_to_kernel 没编译出来
+done_loading:
+    db "[setup.asm] : done loading kernel ", 0
+jumping_to_kernel:
+    db "[setup.asm] : now, jumping to kernel ...", 0    ; 这里如果少写了","，会导致 jumping_to_kernel 没编译出来
