@@ -102,7 +102,6 @@ protect_mode:
     mov esi, done_loading       ; 待输出字符串。
     call print
 
-
     ; 打印 “跳转到内核”
     mov eax, 3
     mov ebx, 0
@@ -154,6 +153,9 @@ read_disk:
     mov al, 0x20                ; 发送读盘命令
     out dx, al
 
+    movzx ecx, bl
+    shl ecx, 8                  ; 每块盘 512 字节，要循环 256 次，每次读 2 字节
+
 .read_check:
     ; 检测硬盘状态
     mov dx, 0x1F7
@@ -164,14 +166,12 @@ read_disk:
 
     ; 从0x1F0 读数据
     mov dx, 0x1F0
-    movzx ecx, bl
-    shl ecx, 8                  ; 每块盘 512 字节，要循环 256 次，每次读 2 字节
 
 .read_data:
     in ax, dx                   ; 读取 2 字节
     mov [edi], ax               ; 放到 edi 的位置
     add edi, 2
-    loop .read_data
+    loop .read_check            ; 取 2 字节后进行检查
     ret
 
 ; 调用方式：
