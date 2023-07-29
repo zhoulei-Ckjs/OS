@@ -1,5 +1,8 @@
 [SECTION .text]
 [BITS 32]
+
+extern main
+
 global _start
 _start:
     ; 尝试访问 1M 以上的内存 0x100000 以上
@@ -7,6 +10,6 @@ _start:
     ; 打开 A20 后可以让超过 1M 的访问不回环
     ; 在进入保护模式后，我们定义段的页表单位为 4K，配合 20 位地址线，即 4K*(2^20) = 4G
     ; 故，我们可以访问 4G 地址空间了。
-    mov byte [0x200000], 0x11
-    xchg bx, bx                 ; bochs 断点
+
+    call main
     jmp $

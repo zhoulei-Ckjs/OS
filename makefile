@@ -3,6 +3,18 @@ BUILD:=./build
 HD_IMG_NAME:= "./${BUILD}/hd.img"
 SYSTEM_SECTORS=9				# 内核拷贝扇区个数
 
+CFLAGS:= -m32 					# 32 位的程序
+CFLAGS+= -masm=intel
+CFLAGS+= -fno-builtin			# 不需要 gcc 内置函数
+CFLAGS+= -nostdinc				# 不需要标准头文件
+CFLAGS+= -fno-pic				# 不需要位置无关的代码  position independent code
+CFLAGS+= -fno-pie				# 不需要位置无关的可执行程序 position independent executable
+CFLAGS+= -nostdlib				# 不需要标准库
+CFLAGS+= -fno-stack-protector	# 不需要栈保护
+CFLAGS:=$(strip ${CFLAGS})		# 去掉前后和中间多余的空格
+
+DEBUG:= -g
+
 all: clean ${BUILD}/boot/boot.o ${BUILD}/boot/setup.o ${BUILD}/system.bin
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(HD_IMG_NAME)
 	dd if=${BUILD}/boot/boot.o of=${HD_IMG_NAME} bs=512 seek=0 count=1 conv=notrunc
@@ -14,8 +26,13 @@ ${BUILD}/system.bin : ${BUILD}/kernel.bin
 	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
 # -Ttext 0x00	把程序的代码段（也就是 .text 段）从内存地址 0x00 开始加载。
-${BUILD}/kernel.bin: ${BUILD}/boot/head.o
+${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
+	${BUILD}/init/main.o
 	ld -m elf_i386 $^ -o $@ -Ttext 0x00
+
+${BUILD}/init/main.o: init/main.c
+	$(shell mkdir -p ${BUILD}/init)
+	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
 ${BUILD}/boot/head.o : boot/head.asm
 	nasm -f elf32 -g $< -o $@
