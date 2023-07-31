@@ -2,6 +2,7 @@ BUILD:=./build
 
 HD_IMG_NAME:= "./${BUILD}/hd.img"
 SYSTEM_SECTORS=9				# 内核拷贝扇区个数
+LOAD_KERNEL_ADDR = 0x00			# 内核加载位置
 
 CFLAGS:= -m32 					# 32 位的程序
 CFLAGS+= -masm=intel
@@ -28,7 +29,7 @@ ${BUILD}/system.bin : ${BUILD}/kernel.bin
 # -Ttext 0x00	把程序的代码段（也就是 .text 段）从内存地址 0x00 开始加载。
 ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/init/main.o
-	ld -m elf_i386 $^ -o $@ -Ttext 0x00
+	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
 
 ${BUILD}/init/main.o: init/main.c
 	$(shell mkdir -p ${BUILD}/init)
@@ -40,7 +41,7 @@ ${BUILD}/boot/head.o : boot/head.asm
 
 ${BUILD}/boot/%.o: boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot)
-	nasm -f bin -w+error -D SYSTEM_SECTORS=${SYSTEM_SECTORS} $< -o $@
+	nasm -f bin -w+error -D SYSTEM_SECTORS=${SYSTEM_SECTORS} -D LOAD_KERNEL_ADDR=${LOAD_KERNEL_ADDR} $< -o $@
 	# -f bin 	裸机二进制格式，编译结果是一个纯二进制文件，没有段信息、没有调试信息，也无法被链接器 ld 使用。
 	# -w+error	让警告变为返回值非 0，让 Make 报错。
 

@@ -1,5 +1,4 @@
 LOAD_SETUP_ADDR equ 0x7E00      ; setup 程序加载的内存起始地址。
-LOAD_KERNEL_ADDR equ 0x00       ; 内核加载的位置
 
 ; 构建 GDT 表所用数据
 GDT_MEMORY_BASE equ 0           ; 内存开始的位置：段地址
