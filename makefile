@@ -14,6 +14,8 @@ CFLAGS+= -nostdlib				# 不需要标准库
 CFLAGS+= -fno-stack-protector	# 不需要栈保护
 CFLAGS:=$(strip ${CFLAGS})		# 去掉前后和中间多余的空格
 
+INCLUDE:= -I./include			# 头文件所在目录
+
 DEBUG:= -g
 
 all: clean ${BUILD}/boot/boot.o ${BUILD}/boot/setup.o ${BUILD}/system.bin
@@ -28,12 +30,17 @@ ${BUILD}/system.bin : ${BUILD}/kernel.bin
 
 # -Ttext 0x00	把程序的代码段（也就是 .text 段）从内存地址 0x00 开始加载。
 ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
-	${BUILD}/init/main.o
+	${BUILD}/init/main.o \
+	${BUILD}/kernel/chr_drv/console.o
 	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
+
+${BUILD}/kernel/chr_drv/%.o: kernel/chr_drv/%.c
+	$(shell mkdir -p ${BUILD}/kernel/chr_drv)
+	gcc ${CFLAGS} ${INCLUDE} ${DEBUG} -c $< -o $@
 
 ${BUILD}/init/main.o: init/main.c
 	$(shell mkdir -p ${BUILD}/init)
-	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
+	gcc ${CFLAGS} ${INCLUDE} ${DEBUG} -c $< -o $@
 
 ${BUILD}/boot/head.o : boot/head.asm
 	nasm -f elf32 -g $< -o $@
