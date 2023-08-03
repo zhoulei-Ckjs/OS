@@ -1,14 +1,28 @@
+#include "sys/types.h"
+
+#define VGA_TEXT_MODE_BUFFER_BASE 0xB8000
+#define VGA_TEXT_MODE_BUFFER_LEN 0x4000
+#define VGA_TEXT_MODE_BUFFER_END (VGA_TEXT_MODE_BUFFER_BASE + VGA_TEXT_MODE_BUFFER_LEN)
+
+static uint screen;
+static uint pos;
+static uint x, y;
+
+/**
+ * @brief 清屏
+ */
+void console_clear()
+{
+    screen = VGA_TEXT_MODE_BUFFER_BASE;
+    pos = VGA_TEXT_MODE_BUFFER_BASE;
+    x = 0;
+    y = 0;
+    u16* ptr = (u16*)VGA_TEXT_MODE_BUFFER_BASE;
+    while(ptr < VGA_TEXT_MODE_BUFFER_END)
+        *ptr++ = 0x0720;
+}
+
 void console_init()
 {
-    char *p = "[kernel::chr_drv::console.c] : in console ...";
-    /// 显示在第三行，0xb8000 是显存和内存的映射位置，每行 80 字符，每个字符 2 字节。
-    char* video = (char*)0xb8000 + 80 * 2 * 4;
-    while(*p != '\0')
-    {
-        *video = *p;
-        ++video;
-        *video = 12;
-        ++video;
-        p++;
-    }
+    console_clear();        ///< 清屏
 }

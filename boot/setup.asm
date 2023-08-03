@@ -104,10 +104,10 @@ protect_mode:
     ; 打印 “跳转到内核”
     mov eax, 3
     mov ebx, 0
-    xchg bx, bx
     mov esi, jumping_to_kernel
     call print
 
+    xchg bx, bx
     jmp dword code_selector:LOAD_KERNEL_ADDR
     ud2             ; 如果跳转失败或者控制流莫名其妙回来了，就触发非法指令异常。
 
