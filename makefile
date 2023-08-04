@@ -31,8 +31,13 @@ ${BUILD}/system.bin : ${BUILD}/kernel.bin
 # -Ttext 0x00	把程序的代码段（也就是 .text 段）从内存地址 0x00 开始加载。
 ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/init/main.o \
-	${BUILD}/kernel/chr_drv/console.o
+	${BUILD}/kernel/chr_drv/console.o \
+	${BUILD}/kernel/asm/io.o
 	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
+
+${BUILD}/kernel/asm/%.o: kernel/asm/%.asm
+	$(shell mkdir -p ${BUILD}/kernel/asm)
+	nasm -f elf32 -w+error -g $< -o $@
 
 ${BUILD}/kernel/chr_drv/%.o: kernel/chr_drv/%.c
 	$(shell mkdir -p ${BUILD}/kernel/chr_drv)
