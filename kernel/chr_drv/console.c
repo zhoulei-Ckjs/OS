@@ -1,5 +1,6 @@
 #include "sys/types.h"
 #include "asm/io.h"
+#include "linux/kernel.h"
 
 #define VGA_TEXT_MODE_BUFFER_BASE 0xB8000
 #define VGA_TEXT_MODE_BUFFER_LEN 0x4000
@@ -39,7 +40,7 @@ static void set_cursor()
 }
 
 /**
- * @brief 清屏
+ * @brief 清屏，实际上是往 0xB8000 的内存位置写空格，写满就是清屏
  */
 void console_clear()
 {
@@ -52,6 +53,7 @@ void console_clear()
         *ptr++ = 0x0720;
 
     set_cursor();           ///< 设置光标位置
+    printk("fdas", 5);
 }
 
 void console_init()

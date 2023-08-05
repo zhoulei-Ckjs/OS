@@ -32,8 +32,13 @@ ${BUILD}/system.bin : ${BUILD}/kernel.bin
 ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/init/main.o \
 	${BUILD}/kernel/chr_drv/console.o \
-	${BUILD}/kernel/asm/io.o
+	${BUILD}/kernel/asm/io.o \
+	${BUILD}/kernel/printk.o
 	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
+
+${BUILD}/kernel/%.o: kernel/%.c
+	$(shell mkdir -p ${BUILD}/kernel)
+	gcc ${CFLAGS} ${INCLUDE} ${DEBUG} -c $< -o $@
 
 ${BUILD}/kernel/asm/%.o: kernel/asm/%.asm
 	$(shell mkdir -p ${BUILD}/kernel/asm)
