@@ -60,3 +60,18 @@ void console_init()
 {
     console_clear();        ///< 清屏
 }
+
+void console_write(char* buf, unsigned int count)
+{
+    char *p = buf;
+    char* video = (char*)VGA_TEXT_MODE_BUFFER_BASE;
+
+    while(count--)
+    {
+        *video = *p;
+        ++video;
+        *video = 12;
+        ++video;
+        p++;
+    }
+}
