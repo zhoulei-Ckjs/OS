@@ -33,8 +33,14 @@ ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/init/main.o \
 	${BUILD}/kernel/chr_drv/console.o \
 	${BUILD}/kernel/asm/io.o \
-	${BUILD}/kernel/printk.o
+	${BUILD}/kernel/printk.o \
+	${BUILD}/kernel/vsprintf.o \
+	${BUILD}/lib/string.o
 	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
+
+${BUILD}/lib/%.o: lib/%.c
+	$(shell mkdir -p ${BUILD}/lib)
+	gcc ${CFLAGS} ${INCLUDE} ${DEBUG} -c $< -o $@
 
 ${BUILD}/kernel/%.o: kernel/%.c
 	$(shell mkdir -p ${BUILD}/kernel)
@@ -77,3 +83,10 @@ qemu: all
 	# -m 32 		为虚拟机分配32MB的内存。
 	# -boot c		指定虚拟机的启动顺序。-boot c 表示从虚拟硬盘（通常是/dev/hda）启动。
 	# -hda ./${HD_IMG_NAME}	指定虚拟机的硬盘映像文件。-hda 表示第一个硬盘设备，././${HD_IMG_NAME} 是这个硬盘的映像文件路径。
+
+qemug: all
+	qemu-system-i386 \
+    	-m 32M \
+    	-boot c \
+    	-hda ./${HD_IMG_NAME}\
+    	-s -S

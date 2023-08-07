@@ -5,7 +5,10 @@
 #ifndef OS_TYPES_H
 #define OS_TYPES_H
 
+#define EOS '\0'                        ///< 字符串结尾
+
 typedef unsigned int uint;
 typedef unsigned short u16;
+typedef unsigned int size_t;
 
 #endif //OS_TYPES_H

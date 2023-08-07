@@ -53,7 +53,6 @@ void console_clear()
         *ptr++ = 0x0720;
 
     set_cursor();           ///< 设置光标位置
-    printk("fdas", 5);
 }
 
 void console_init()
