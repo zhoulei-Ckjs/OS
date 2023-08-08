@@ -62,15 +62,19 @@ void console_init()
 
 void console_write(char* buf, unsigned int count)
 {
-    char *p = buf;
-    char* video = (char*)VGA_TEXT_MODE_BUFFER_BASE;
-
+    char ch = '\0';
+    char *ptr = NULL;
     while(count--)
     {
-        *video = *p;
-        ++video;
-        *video = 12;
-        ++video;
-        p++;
+        ch = *buf++;
+        switch (ch)
+        {
+            default:
+                ptr = (char*)pos;       ///< 更改指针位置
+                *ptr = ch;              ///< 写一个字符
+                *(ptr + 1) = 0x07;      ///< 黑底白字
+                pos += 2;               ///< 当前位置更新
+        }
     }
+    set_cursor();                   ///< 设置光标位置
 }

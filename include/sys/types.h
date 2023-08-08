@@ -6,6 +6,7 @@
 #define OS_TYPES_H
 
 #define EOS '\0'                        ///< 字符串结尾
+#define NULL ((void *)0)                ///< 空指针
 
 typedef unsigned int uint;
 typedef unsigned short u16;
