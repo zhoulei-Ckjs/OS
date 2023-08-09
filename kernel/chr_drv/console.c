@@ -5,6 +5,10 @@
 #define VGA_TEXT_MODE_BUFFER_BASE 0xB8000
 #define VGA_TEXT_MODE_BUFFER_LEN 0x4000
 #define VGA_TEXT_MODE_BUFFER_END (VGA_TEXT_MODE_BUFFER_BASE + VGA_TEXT_MODE_BUFFER_LEN)
+#define VGA_TEXT_MODE_SCREEN_WIDTH 80                       ///< 屏幕文本列数，每行显示80个字节
+#define VGA_TEXT_MODE_SCREEN_HEIGHT 25                      ///< 屏幕文本行数
+#define VGA_TEXT_MODE_SCREEN_ROW_SIZE (WIDTH * 2)           ///< 每行字节数，每行显示80个字节（但是每个字节后面都有一个表示颜色的字节），所以就是160字节
+#define VGA_TEXT_MODE_SCREEN_SCR_SIZE (ROW_SIZE * HEIGHT)   ///< 屏幕字节数
 
 /**
  * 索引寄存器，一般用法：
@@ -21,6 +25,16 @@
  */
 #define CRT_CURSOR_H 0xE        ///< 光标位置 - 高位
 #define CRT_CURSOR_L 0xF        ///< 光标位置 - 低位
+
+#define ASCII_NUL 0x00          ///< 结尾符 \0
+#define ASCII_BEL 0x07          ///< \a，警报提示音
+#define ASCII_BS 0x08           ///< \b，退格符backspace
+#define ASCII_HT 0x09           ///< \t，tab键
+#define ASCII_LF 0x0A           ///< LINE FEED 换行符 \n
+#define ASCII_VT 0x0B           ///< \v 垂直制表位
+#define ASCII_FF 0x0C           ///< \f 滚动到下一行，并不定位到行首
+#define ASCII_CR 0x0D           ///< \r 回车符
+#define ASCII_DEL 0x7F          ///< delete 键，这个键 ascii 也是 a.out 的起始字符
 
 static uint screen;             ///< 当前显示器开始的内存位置
 static uint pos;                ///< 记录当前光标的内存位置
@@ -60,6 +74,19 @@ void console_init()
     console_clear();        ///< 清屏
 }
 
+/**
+ * @brief '\b' 退格符 backspace 的处理
+ */
+static void command_bs()
+{
+    if(x > 0)
+    {
+        x--;
+        pos -= 2;
+        *((u16*)pos) = 0x0720;
+    }
+}
+
 void console_write(char* buf, unsigned int count)
 {
     char ch = '\0';
@@ -69,6 +96,20 @@ void console_write(char* buf, unsigned int count)
         ch = *buf++;
         switch (ch)
         {
+            /// '\0'的处理 不打印
+            case ASCII_NUL:
+                break;
+            /// '\a'警报提示音，暂不处理
+            case ASCII_BEL:
+                /// TODO
+                break;
+            /// '\b'退格符，backspace
+            case ASCII_BS:
+                command_bs();
+                break;
+            /// '\t' tab键，暂不处理
+            case ASCII_HT:
+                break;
             default:
                 ptr = (char*)pos;       ///< 更改指针位置
                 *ptr = ch;              ///< 写一个字符
@@ -76,5 +117,5 @@ void console_write(char* buf, unsigned int count)
                 pos += 2;               ///< 当前位置更新
         }
     }
-    set_cursor();                   ///< 设置光标位置
+    set_cursor();                       ///< 设置光标位置
 }
