@@ -109,6 +109,14 @@ static void command_cr()
     x = 0;
 }
 
+/**
+ * @brief delete 键，没有特殊的转义字符，ascii 码为 0x7F
+ */
+static void command_del()
+{
+    *((unsigned short*)(pos)) = 0x0720; ///< 将当前位置字符置空
+}
+
 void console_write(char* buf, unsigned int count)
 {
     char ch = '\0';
@@ -136,6 +144,21 @@ void console_write(char* buf, unsigned int count)
             case ASCII_LF:
                 command_lf();           ///< 换行
                 command_cr();           ///< 回车
+                break;
+            /// \v' 垂直制表位 暂不处理
+            case ASCII_VT:
+                break;
+            /// '\f' 滚动一行（只换行，不定位到行首）
+            case ASCII_FF:
+                command_lf();
+                break;
+            /// '\r' 回车符的处理
+            case ASCII_CR:
+                command_cr();
+                break;
+            /// 'del' 键  ascii = 0x7f
+            case ASCII_DEL:
+                command_del();
                 break;
             default:
                 if(x >= VGA_TEXT_MODE_SCREEN_WIDTH)
