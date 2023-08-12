@@ -6,5 +6,9 @@ void main(void)
     /// 控制台初始化
     console_init();
 
-    console_write("123\n456\f\r", 9);
+    int i = 0;
+    while(1)
+    {
+        printk("%d\n", i++);
+    }
 }

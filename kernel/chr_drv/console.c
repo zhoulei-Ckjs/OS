@@ -3,7 +3,7 @@
 #include "linux/kernel.h"
 
 #define VGA_TEXT_MODE_BUFFER_BASE 0xB8000
-#define VGA_TEXT_MODE_BUFFER_LEN 0x4000
+#define VGA_TEXT_MODE_BUFFER_LEN 0x7FFF                     ///< 从 0xB8000 到 0xBFFFF
 #define VGA_TEXT_MODE_BUFFER_END (VGA_TEXT_MODE_BUFFER_BASE + VGA_TEXT_MODE_BUFFER_LEN)
 #define VGA_TEXT_MODE_SCREEN_WIDTH 80                       ///< 屏幕文本列数，每行显示80个字节
 #define VGA_TEXT_MODE_SCREEN_HEIGHT 25                      ///< 屏幕文本行数
@@ -17,6 +17,14 @@
  */
 #define CRT_ADDR_REG 0x3D4      ///< CRT(6845)索引寄存器
 #define CRT_DATA_REG 0x3D5      ///< CRT(6845)索引寄存器
+
+/**
+ * 根据 CRT 芯片的规格和文档
+ * 向 0x3D4 发送 0xC 表示要操作显示起始位置的高位
+ * 往 0x3D4 发送 0xD 表示要操作显示起始位置的低位
+ */
+#define CRT_START_ADDR_H 0xC    ///< 显示内存起始位置 - 高位
+#define CRT_START_ADDR_L 0xD    ///< 显示内存起始位置 - 低位
 
 /**
  * 根据 CRT 芯片的规格和文档：
@@ -54,6 +62,22 @@ static void set_cursor()
 }
 
 /**
+ * @brief 设置显示器显示的起始位置
+ *
+ * 0xb8000 到0 xc000 都是显存的位置，让显示器从固定的内存位置显示开始显示
+ */
+static void set_screen()
+{
+    out_byte(CRT_ADDR_REG, CRT_START_ADDR_H);       ///< 要操作显示起始位置的高位
+    /// 当前位置 - 0xb8000（首地址）右移 9 位
+    /// 右移 9 位是因为低位占 8 位，而屏幕上的每一个字符都占 2 位字节，控制器是以字符为单位的，即右移 8 位再右移 1 位，即右移 9 位
+    out_byte(CRT_DATA_REG, ((screen - VGA_TEXT_MODE_BUFFER_BASE) >> 9) & 0xFF);     ///< 向显示起始位置的高位写数据
+    out_byte(CRT_ADDR_REG, CRT_START_ADDR_L);       ///< 要操作显示起始位置的低位
+    /// 屏幕上的没一个字符占 2 个字节，控制器是以字符为单位的，所有我们要右移 1 位
+    out_byte(CRT_DATA_REG, ((screen - VGA_TEXT_MODE_BUFFER_BASE) >> 1) & 0xFF);     ///< 向显示起始位置的低位写数据
+}
+
+/**
  * @brief 清屏，实际上是往 0xB8000 的内存位置写空格，写满就是清屏
  */
 void console_clear()
@@ -88,6 +112,29 @@ static void command_bs()
 }
 
 /**
+ * @brief 向上滚屏
+ */
+static void scroll_up()
+{
+    /// 没有达到全部映射的内存
+    if(screen + VGA_TEXT_MODE_SCREEN_SCR_SIZE + VGA_TEXT_MODE_SCREEN_ROW_SIZE < VGA_TEXT_MODE_BUFFER_END)
+    {
+        unsigned short *ptr = screen + VGA_TEXT_MODE_SCREEN_SCR_SIZE;
+        for(size_t i = 0; i < VGA_TEXT_MODE_SCREEN_WIDTH; i++)
+        {
+            *ptr++ = 0x0720;
+        }
+        screen += VGA_TEXT_MODE_SCREEN_ROW_SIZE;    ///< 显示的起始位置 + 一行
+        pos += VGA_TEXT_MODE_SCREEN_ROW_SIZE;       ///<
+    }
+    else    ///< 已经达到映射的内存了，那么可能要循环到开始再显示了
+    {
+
+    }
+    set_screen();
+}
+
+/**
  * @brief 换行的命令处理，即 ASCII 为 0A，即'\n'的处理
  */
 static void command_lf()
@@ -98,6 +145,7 @@ static void command_lf()
         pos += VGA_TEXT_MODE_SCREEN_ROW_SIZE;
         return;
     }
+    scroll_up();                        ///< 滚屏
 }
 
 /**
