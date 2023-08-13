@@ -1,7 +1,7 @@
 BUILD:=./build
 
 HD_IMG_NAME:= "./${BUILD}/hd.img"
-SYSTEM_SECTORS=10				# 内核拷贝扇区个数
+SYSTEM_SECTORS=11				# 内核拷贝扇区个数
 LOAD_KERNEL_ADDR = 0x00			# 内核加载位置
 
 CFLAGS:= -m32 					# 32 位的程序

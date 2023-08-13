@@ -129,7 +129,14 @@ static void scroll_up()
     }
     else    ///< 已经达到映射的内存了，那么可能要循环到开始再显示了
     {
-
+        memcpy(VGA_TEXT_MODE_BUFFER_BASE, screen + VGA_TEXT_MODE_SCREEN_ROW_SIZE, VGA_TEXT_MODE_SCREEN_SCR_SIZE);
+        pos -= (screen - VGA_TEXT_MODE_BUFFER_BASE);    ///< 更新光标位置。
+        screen = VGA_TEXT_MODE_BUFFER_BASE;             ///< 更新当前屏幕开始位置。
+        unsigned short *ptr = (screen + VGA_TEXT_MODE_SCREEN_SCR_SIZE - VGA_TEXT_MODE_SCREEN_ROW_SIZE);
+        for(int i = 0; i < VGA_TEXT_MODE_SCREEN_WIDTH; i++)
+        {
+            *ptr++ = 0x0720;
+        }
     }
     set_screen();
 }

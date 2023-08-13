@@ -10,4 +10,13 @@
  */
 size_t strlen(const char* str);
 
+/**
+ * @brief 内存拷贝函数
+ * @param dest 目标地址
+ * @param src 源地址
+ * @param count 拷贝字节数
+ * @return 目的地址
+ */
+void *memcpy(void *dest, void *src, size_t count);
+
 #endif //OS_STRING_H
