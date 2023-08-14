@@ -5,10 +5,6 @@ void main(void)
 {
     /// 控制台初始化
     console_init();
-
-    int i = 0;
-    while(1)
-    {
-        printk("%d\n", i++);
-    }
+    /// 初始化 gdt 表
+    gdt_init();
 }
