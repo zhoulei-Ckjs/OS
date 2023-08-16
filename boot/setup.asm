@@ -5,10 +5,13 @@ GDT_MEMORY_BASE equ 0           ; 内存开始的位置：段地址
 GDT_MEMORY_LIMIT equ 0xFFFFF    ; 段界限，20 位寻址空间的最大值。
                                 ; 实际上如果以 4K 为单位，即每 bit 代表 4K，则可以访问 2^32 = 4G 的内存。
                                 ; 以什么为单位是 gdt 表中每个表项指定的。
+B8000_SEG_BASE equ 0xB8000      ; 显存开始位置
+B8000_SEG_LIMIT equ 0x7FFF      ; 显存长度
 code_selector equ (1 << 3)      ; 代码段选择子，标号为 1，最后 3bit 为属性。
                                 ; 选择子，进入保护模式就是通过选择子访问地址的，cs:ip 的访问时 cs 指定的选择子，
                                 ; 通过选择子获取基址，然后加上 ip 即访问地址。
 data_selector equ (2 << 3)      ; 数据段选择子
+b8000_selector equ (3 << 3)     ; 视频段选择子
 
 
 [ORG LOAD_SETUP_ADDR]           ; setup 从 LOAD_SETUP_ADDR 地址开始汇编。
@@ -23,7 +26,7 @@ gdt_code:
     dw GDT_MEMORY_BASE & 0xffff                         ; 段基址（31-16）
     db (GDT_MEMORY_BASE >> 16) & 0xff                   ; 段基址（39-32）
     ;    P_DPL_S_TYPE
-    db 0b1_00_1_1010                                    ; 段描述符有效_工作在ring0_非系统段_仅具有执行权限 & 可读
+    db 0b1_00_1_1010                                    ; 段描述符有效_工作在ring0_非系统段_仅具有执行权限 & 可读的代码段
     ;    G_DB_AVL_LIMIT
     db 0b1_1_00_0000 | (GDT_MEMORY_LIMIT >> 16 & 0xf)   ; 以4k为单位_32位段_非64位代码段_段界限（最高 4 位）
     db (GDT_MEMORY_BASE >> 24) & 0xff                   ; 段基址，31-24
@@ -32,10 +35,19 @@ gdt_data:
     dw GDT_MEMORY_BASE & 0xffff
     db (GDT_MEMORY_BASE >> 16) & 0xff
     ;    P_DPL_S_TYPE
-    db 0b1_00_1_0010                                    ; 段描述符有效_工作在ring0_非系统段_仅具有只读权限
+    db 0b1_00_1_0010                                    ; 段描述符有效_工作在ring0_非系统段_具有读/写权限的数据段
     ;    G_DB_AVL_LIMIT
     db 0b1_1_00_0000 | ((GDT_MEMORY_LIMIT >> 16) & 0xf) ; 以4KB为单位_32位段_非64位代码段_段界限（最高4位）
     db GDT_MEMORY_BASE >> 24 & 0xff
+gdt_b8000:
+    dw B8000_SEG_LIMIT & 0xffff                         ; 段界限（15-0）
+    dw B8000_SEG_BASE & 0xffff                          ; 段基址（31-16）
+    db B8000_SEG_BASE >> 16 & 0xff                      ; 段基址（39-32）
+    ;    P_DPL_S_TYPE
+    db 0b1_00_1_0010                                    ; 段描述符有效_工作在ring0_非系统段_具有读/写权限的数据段
+    ;    G_DB_AVL_LIMIT
+    db 0b0_1_00_0000 | (B8000_SEG_LIMIT >> 16 & 0xf)    ; 以1B为单位_32位段_非64位代码段_段界限（最高4位）
+    db B8000_SEG_BASE >> 24 & 0xff                      ; 段基址，31-24
 gdt_ptr:                        ; 加载gdt表用 gdt_ptr 指针
     dw $ - gdt_base - 1         ; 这里是 gdtlen - 1，长度 - 1
     dd gdt_base                 ; GDT基地址
