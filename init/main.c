@@ -1,5 +1,5 @@
 #include "linux/tty.h"
-#include "linux/kernel.h"
+#include "linux/traps.h"
 
 void main(void)
 {

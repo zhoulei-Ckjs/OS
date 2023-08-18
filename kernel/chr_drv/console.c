@@ -1,6 +1,7 @@
 #include "sys/types.h"
 #include "asm/io.h"
 #include "linux/kernel.h"
+#include "string.h"
 
 #define VGA_TEXT_MODE_BUFFER_BASE 0xB8000
 #define VGA_TEXT_MODE_BUFFER_LEN 0x7FFF                     ///< 从 0xB8000 到 0xBFFFF
@@ -119,7 +120,7 @@ static void scroll_up()
     /// 没有达到全部映射的内存
     if(screen + VGA_TEXT_MODE_SCREEN_SCR_SIZE + VGA_TEXT_MODE_SCREEN_ROW_SIZE < VGA_TEXT_MODE_BUFFER_END)
     {
-        unsigned short *ptr = screen + VGA_TEXT_MODE_SCREEN_SCR_SIZE;
+        unsigned short *ptr = (unsigned short *)(screen + VGA_TEXT_MODE_SCREEN_SCR_SIZE);
         for(size_t i = 0; i < VGA_TEXT_MODE_SCREEN_WIDTH; i++)
         {
             *ptr++ = 0x0720;
@@ -129,10 +130,10 @@ static void scroll_up()
     }
     else    ///< 已经达到映射的内存了，那么可能要循环到开始再显示了
     {
-        memcpy(VGA_TEXT_MODE_BUFFER_BASE, screen + VGA_TEXT_MODE_SCREEN_ROW_SIZE, VGA_TEXT_MODE_SCREEN_SCR_SIZE);
+        memcpy((void*)VGA_TEXT_MODE_BUFFER_BASE, (void*)(screen + VGA_TEXT_MODE_SCREEN_ROW_SIZE), VGA_TEXT_MODE_SCREEN_SCR_SIZE);
         pos -= (screen - VGA_TEXT_MODE_BUFFER_BASE);    ///< 更新光标位置。
         screen = VGA_TEXT_MODE_BUFFER_BASE;             ///< 更新当前屏幕开始位置。
-        unsigned short *ptr = (screen + VGA_TEXT_MODE_SCREEN_SCR_SIZE - VGA_TEXT_MODE_SCREEN_ROW_SIZE);
+        unsigned short *ptr = (unsigned short *)(screen + VGA_TEXT_MODE_SCREEN_SCR_SIZE - VGA_TEXT_MODE_SCREEN_ROW_SIZE);
         for(int i = 0; i < VGA_TEXT_MODE_SCREEN_WIDTH; i++)
         {
             *ptr++ = 0x0720;

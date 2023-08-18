@@ -1,6 +1,7 @@
 #include "linux/head.h"
 #include "string.h"
 #include "macro.h"
+#include "linux/kernel.h"
 
 gdt_ptr_t gdt_ptr;              ///< 存储 gdt 信息的全局结构体
 
@@ -14,7 +15,7 @@ void gdt_init()
     printk("init gdt...\n");
     /// 加载 gdt 表信息，保存到 gdt_ptr 中
     __asm__ volatile ("sgdt gdt_ptr;");
-    memcpy(gdt, gdt_ptr.base, gdt_ptr.limit + 1);   ///< 将 gdt 表的数据拷贝出来
+    memcpy(gdt, (void*)(gdt_ptr.base), gdt_ptr.limit + 1);   ///< 将 gdt 表的数据拷贝出来
 
     printk("gdt_item_t size = %d\n", sizeof(gdt_item_t));
     printk("%x\n", gdt[1].limit_low);               ///< 应该是 0xffff
