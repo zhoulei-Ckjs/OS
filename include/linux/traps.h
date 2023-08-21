@@ -6,4 +6,9 @@
  */
 void gdt_init();
 
+/**
+ * @brief 初始化中断向量表
+ */
+void idt_init();
+
 #endif //OS_TRAPS_H

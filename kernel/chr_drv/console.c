@@ -94,6 +94,9 @@ void console_clear()
     set_cursor();           ///< 设置光标位置
 }
 
+/**
+ * @brief 清屏、初始化光标位置
+ */
 void console_init()
 {
     console_clear();        ///< 清屏

@@ -31,4 +31,19 @@ typedef struct global_descriptor_table_pointer
 }gdt_ptr_t;
 #pragma pack()
 
+/**
+ * @brief 中断描述符
+ */
+typedef struct interrupt_descriptor
+{
+    short offset0;                                  ///< 段内偏移 0 ~ 15 位
+    short selector;                                 ///< 代码段选择子
+    char reserved;                                  ///< 保留不用
+    char type : 4;                                  ///< 任务门/中断门/陷阱门
+    char segment : 1;                               ///< segment = 0 表示系统段
+    char DPL : 2;                                   ///< 使用 int 指令访问的最低权限
+    char present : 1;                               ///< 是否有效
+    short offset1;                                  ///< 段内偏移 16 ~ 31 位
+} __attribute__((packed)) interrupt_descriptor;     ///< 按紧凑方式对结构体进行内存对齐，取消默认的对齐填充
+
 #endif //OS_HEAD_H

@@ -3,8 +3,7 @@
 
 void main(void)
 {
-    /// 控制台初始化
-    console_init();
-    /// 初始化 gdt 表
-    gdt_init();
+    console_init();     ///< 控制台初始化
+    gdt_init();         ///< 初始化 gdt 表
+    idt_init();         ///< 初始化中断
 }
