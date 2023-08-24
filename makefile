@@ -37,7 +37,8 @@ ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/kernel/vsprintf.o \
 	${BUILD}/lib/string.o \
 	${BUILD}/kernel/gdt.o \
-	${BUILD}/kernel/idt.o
+	${BUILD}/kernel/idt.o \
+	${BUILD}/kernel/asm/interrupt_handler.o
 	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
 
 ${BUILD}/lib/%.o: lib/%.c
