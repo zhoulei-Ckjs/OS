@@ -30,5 +30,7 @@ void idt_init()
     *((int*)(idt_ptr + 2)) = (int)(&interrupt_table);           ///< 中断描述符地址。
 
     BOCHS_DEBUG_MAGIC
-    asm volatile("lidt idt_ptr;");          ///< 加载中断描述符表
+
+    /// volatile 告诉编译器不要优化这段汇编代码，确保汇编指令按书写顺序执行，防止编译器将这段汇编指令移除（即使输出未使用）
+    __asm__ volatile("lidt idt_ptr;");      ///< 加载中断描述符表
 }
