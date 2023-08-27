@@ -1,14 +1,17 @@
 #include "linux/head.h"
 #include "string.h"
 #include "asm/system.h"
+#include "linux/kernel.h"
 
 #define INTERRUPT_TABLE_SIZE    256         ///< 中断门个数
 interrupt_descriptor interrupt_table[INTERRUPT_TABLE_SIZE] = {0};       ///< 中断描述符表
 char idt_ptr[6] = {0};                      ///< 中断向量表重新指向的位置
 extern void interrupt_handler();
+extern void keymap_handler_entry();         ///< 键盘中断
 
 void idt_init()
 {
+    printk("init idt ...\n");
     for(int i = 0; i < INTERRUPT_TABLE_SIZE; ++i)
     {
         interrupt_descriptor* p = &(interrupt_table[i]);
@@ -16,6 +19,13 @@ void idt_init()
         memset(p, '\0', sizeof(interrupt_descriptor));
 
         int handler = (int)interrupt_handler;
+
+        /// 键盘中断
+        if(0x21 == i)
+        {
+            handler = (int)keymap_handler_entry;
+        }
+
         p->offset0 = handler & 0xffff;
         p->offset1 = (handler >> 16) & 0xffff;
         p->selector = 1 << 3;               ///< 代码段
