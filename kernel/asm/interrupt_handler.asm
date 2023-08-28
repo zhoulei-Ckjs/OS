@@ -1,4 +1,5 @@
 extern printk
+extern keymap_handler
 
 ; 进入中断处理程序之前，CPU会先往栈中压入值。
 ; 不跨态压入三个值:
@@ -32,13 +33,11 @@ interrupt_handler:
 ;   低地址       esp
 global keymap_handler_entry
 keymap_handler_entry:
-    push msg_keymap
-    call printk
+    push 0x21
+    call keymap_handler
     add esp, 4
 
     iret            ; 拿出 CPU 自动压入的寄存器的值，返回进入中断前的程序
 
 msg:
     db "interrupt_handler", 10, 0
-msg_keymap:
-    db "key_map_interrupt handler entered", 10, 0
