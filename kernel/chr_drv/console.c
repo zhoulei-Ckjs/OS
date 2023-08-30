@@ -87,8 +87,8 @@ void console_clear()
     pos = VGA_TEXT_MODE_BUFFER_BASE;
     x = 0;
     y = 0;
-    u16* ptr = (u16*)VGA_TEXT_MODE_BUFFER_BASE;
-    while(ptr < (u16*)VGA_TEXT_MODE_BUFFER_END)
+    ushort* ptr = (ushort*)VGA_TEXT_MODE_BUFFER_BASE;
+    while(ptr < (ushort*)VGA_TEXT_MODE_BUFFER_END)
         *ptr++ = 0x0720;
 
     set_cursor();           ///< 设置光标位置
@@ -111,7 +111,7 @@ static void command_bs()
     {
         x--;
         pos -= 2;
-        *((u16*)pos) = 0x0720;
+        *((ushort*)pos) = 0x0720;
     }
 }
 
