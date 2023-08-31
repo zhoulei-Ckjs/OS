@@ -11,6 +11,8 @@
 #define true 1
 #define false 0
 
+#define bool _Bool                      ///< _Bool 是 C 语言中的布尔数据类型
+
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int size_t;

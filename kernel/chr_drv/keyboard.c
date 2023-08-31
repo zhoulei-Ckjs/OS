@@ -6,10 +6,17 @@
  * 一个按键按下会触发中断两次
  * 按下返回的码叫通码 make code
  * 弹起返回的码叫断码 break code
+ *
+ * 断码 = 通码 | 0b1000_0000
+ * a 的通码 ： 0001 1110 (note:最高位为 0 代表通码)
+ * a 的断码 ： 1001 1110 (note:最高位为 1 代表断码)
  */
 
 #define INV 0         ///< 不可见字符
 
+/**
+ * @brief 用于显示的字符表，按键 ASCII 码
+ */
 static char keymap[][4] =
     {
         /// 扫描码 未与 shift 组合  与 shift 组合 以及相关状态
@@ -113,10 +120,135 @@ static char keymap[][4] =
         /* 0x5F */ {INV, INV, false, false}, // PrintScreen
     };
 
+/**
+ * @brief 通码值
+ */
+typedef enum {
+    KEY_NONE,       ///< 0
+    KEY_ESC,
+    KEY_1,
+    KEY_2,
+    KEY_3,
+    KEY_4,
+    KEY_5,
+    KEY_6,
+    KEY_7,
+    KEY_8,
+    KEY_9,          ///< 10
+    KEY_0,
+    KEY_MINUS,
+    KEY_EQUAL,
+    KEY_BACKSPACE,
+    KEY_TAB,
+    KEY_Q,
+    KEY_W,
+    KEY_E,
+    KEY_R,
+    KEY_T,          ///< 20
+    KEY_Y,
+    KEY_U,
+    KEY_I,
+    KEY_O,
+    KEY_P,
+    KEY_BRACKET_L,
+    KEY_BRACKET_R,
+    KEY_ENTER,
+    KEY_CTRL_L,
+    KEY_A,          ///< 30
+    KEY_S,
+    KEY_D,
+    KEY_F,
+    KEY_G,
+    KEY_H,
+    KEY_J,
+    KEY_K,
+    KEY_L,
+    KEY_SEMICOLON,
+    KEY_QUOTE,      ///< 40
+    KEY_BACKQUOTE,
+    KEY_SHIFT_L,
+    KEY_BACKSLASH,
+    KEY_Z,
+    KEY_X,
+    KEY_C,
+    KEY_V,
+    KEY_B,
+    KEY_N,
+    KEY_M,          ///< 50
+    KEY_COMMA,
+    KEY_POINT,
+    KEY_SLASH,
+    KEY_SHIFT_R,
+    KEY_STAR,
+    KEY_ALT_L,
+    KEY_SPACE,
+    KEY_CAPSLOCK,   ///< 58
+    KEY_F1,
+    KEY_F2,         ///< 60
+    KEY_F3,
+    KEY_F4,
+    KEY_F5,
+    KEY_F6,
+    KEY_F7,
+    KEY_F8,
+    KEY_F9,
+    KEY_F10,
+    KEY_NUMLOCK,
+    KEY_SCRLOCK,    ///< 70
+    KEY_PAD_7,
+    KEY_PAD_8,
+    KEY_PAD_9,
+    KEY_PAD_MINUS,
+    KEY_PAD_4,
+    KEY_PAD_5,
+    KEY_PAD_6,
+    KEY_PAD_PLUS,
+    KEY_PAD_1,
+    KEY_PAD_2,      ///< 80
+    KEY_PAD_3,
+    KEY_PAD_0,
+    KEY_PAD_POINT,
+    KEY_54,
+    KEY_55,
+    KEY_56,
+    KEY_F11,
+    KEY_F12,
+    KEY_59,
+    KEY_WIN_L,      ///< 90
+    KEY_WIN_R,
+    KEY_CLIPBOARD,
+    KEY_5D,
+    KEY_5E,
+
+    KEY_PRINT_SCREEN,   ///< 95
+} key_index_t;
+
+static bool capslock_state = false;                          ///< 大写锁定
+
 void keymap_handler(int idt_index)
 {
     uchar scancode = in_byte(0x60);
-    ushort makecode = (scancode & 0b01111111);               ///< 获得通码
-    char ch = keymap[makecode][0];                           ///< 这里一次按键会打印两次 a，通码一次，断码一次
+    ushort makecode = (scancode & 0b01111111);              ///< 获得通码
+
+    /// 是否是断码，按键抬起
+    bool breakcode = ((scancode & 0b10000000) != 0);
+    if (breakcode)                                          ///< 处理断码
+    {
+        return;
+    }
+
+    /// 判断通码是否是大写锁定
+    if (makecode == KEY_CAPSLOCK)
+    {
+        capslock_state = !capslock_state;
+    }
+
+    bool shift = false;
+    if (capslock_state)
+    {
+        shift = !shift;
+    }
+    /// 获得按键 ASCII 码
+    char ch = keymap[makecode][shift];                           ///< 这里一次按键会打印两次 a，通码一次，断码一次
     printk("%c\n", ch);
 }
