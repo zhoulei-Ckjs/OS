@@ -19,7 +19,7 @@
  */
 static char keymap[][4] =
     {
-        /// 扫描码 未与 shift 组合  与 shift 组合 以及相关状态
+        /// 扫描码 (未与 shift 组合 ) (与 shift 组合) 以及相关状态
         /* 0x00 */ {INV, INV, false, false},   // NULL
         /* 0x01 */ {0x1b, 0x1b, false, false}, // ESC
         /* 0x02 */ {'1', '!', false, false},
@@ -223,19 +223,51 @@ typedef enum {
     KEY_PRINT_SCREEN,   ///< 95
 } key_index_t;
 
-static bool capslock_state = false;                          ///< 大写锁定
+static bool capslock_state = false;                         ///< 大写锁定
+static bool extcode_state = false;                          ///< 扩展码状态
+                                                            ///< 扩展码用于标识与标准码不同的键。比如，右侧的 Ctrl 键对应的扫描码为 0xE0 0x1D
+                                                            ///< 而左侧的 Ctrl 键对应的扫描码为 0x1D。通过扩展码可以区分这两个键。
 
 void keymap_handler(int idt_index)
 {
+    uchar ext = 2;                                          ///< keymap 状态索引，默认没有 shift 键
     uchar scancode = in_byte(0x60);
+
+    /// 是扩展码字节前缀
+    if (scancode == 0xe0)
+    {
+        /// 置扩展状态
+        printk("extension code\n");
+        extcode_state = true;
+        return;
+    }
+
+    /// 是扩展码
+    if (extcode_state)
+    {
+        /// 改状态索引
+        ext = 3;
+        /// 修改扫描码，添加 0xe0 前缀
+        scancode |= 0xe000;
+        /// 扩展状态无效
+        extcode_state = false;
+    }
+
     ushort makecode = (scancode & 0b01111111);              ///< 获得通码
 
     /// 是否是断码，按键抬起
     bool breakcode = ((scancode & 0b10000000) != 0);
+
+    /// 这里一次按键会触发两次，通码一次，断码一次，当断码触发时表示一个按键结束，我们只打印通码，断码直接返回。
     if (breakcode)                                          ///< 处理断码
     {
+        /// 如果是则设置状态
+        keymap[makecode][ext] = false;
         return;
     }
+
+    /// 下面是通码，按键按下
+    keymap[makecode][ext] = true;
 
     /// 判断通码是否是大写锁定
     if (makecode == KEY_CAPSLOCK)
@@ -249,6 +281,22 @@ void keymap_handler(int idt_index)
         shift = !shift;
     }
     /// 获得按键 ASCII 码
-    char ch = keymap[makecode][shift];                           ///< 这里一次按键会打印两次 a，通码一次，断码一次
+    char ch = INV;
+
+    if (ext == 3)                                            ///< 如果是扩展按键（如 右侧 Ctrl 键）
+    {
+        ch = keymap[makecode][1];
+    }
+    else
+    {
+        ch = keymap[makecode][shift];
+    }
+
+    /// 如果是INV，则不打印
+    if (ch == INV)
+    {
+        return;
+    }
+
     printk("%c\n", ch);
 }
