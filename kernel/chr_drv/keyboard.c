@@ -120,6 +120,9 @@ static char keymap[][4] =
         /* 0x5F */ {INV, INV, false, false}, // PrintScreen
     };
 
+/// PrtSc 按键的通码值
+#define CODE_PRINT_SCREEN_DOWN 0xB7
+
 /**
  * @brief 通码值
  */
@@ -134,7 +137,7 @@ typedef enum {
     KEY_6,
     KEY_7,
     KEY_8,
-    KEY_9,          ///< 10
+    KEY_9,          ///< 10(0xA)
     KEY_0,
     KEY_MINUS,
     KEY_EQUAL,
@@ -144,7 +147,7 @@ typedef enum {
     KEY_W,
     KEY_E,
     KEY_R,
-    KEY_T,          ///< 20
+    KEY_T,          ///< 20(0x14)
     KEY_Y,
     KEY_U,
     KEY_I,
@@ -154,7 +157,7 @@ typedef enum {
     KEY_BRACKET_R,
     KEY_ENTER,
     KEY_CTRL_L,
-    KEY_A,          ///< 30
+    KEY_A,          ///< 30(0x1E)
     KEY_S,
     KEY_D,
     KEY_F,
@@ -164,7 +167,7 @@ typedef enum {
     KEY_K,
     KEY_L,
     KEY_SEMICOLON,
-    KEY_QUOTE,      ///< 40
+    KEY_QUOTE,      ///< 40(0x28)
     KEY_BACKQUOTE,
     KEY_SHIFT_L,
     KEY_BACKSLASH,
@@ -174,7 +177,7 @@ typedef enum {
     KEY_V,
     KEY_B,
     KEY_N,
-    KEY_M,          ///< 50
+    KEY_M,          ///< 50(0x32)
     KEY_COMMA,
     KEY_POINT,
     KEY_SLASH,
@@ -214,13 +217,13 @@ typedef enum {
     KEY_F11,
     KEY_F12,
     KEY_59,
-    KEY_WIN_L,      ///< 90
+    KEY_WIN_L,      ///< 90(0x5A)
     KEY_WIN_R,
     KEY_CLIPBOARD,
     KEY_5D,
-    KEY_5E,
+    KEY_5E,         ///< 94(0x5E)
 
-    KEY_PRINT_SCREEN,   ///< 95
+    KEY_PRINT_SCREEN   ///< PrtSc 按键在 keymap 中索引。
 } key_index_t;
 
 static bool capslock_state = false;                         ///< 大写锁定
@@ -234,6 +237,11 @@ void keymap_handler(int idt_index)
     uchar scancode = in_byte(0x60);
 
     /// 是扩展码字节前缀
+    /**
+     * 扩展码用于标识与标准码不同的键。比如，右侧的 Ctrl 键对应的扫描码为 0xE0 0x1D，一个扩展码会有 4 个 byte
+     * 普通码就 2 个
+     * 而左侧的 Ctrl 键对应的扫描码为 0x1D。通过扩展码可以区分这两个键。
+     */
     if (scancode == 0xe0)
     {
         /// 置扩展状态
@@ -255,11 +263,21 @@ void keymap_handler(int idt_index)
 
     ushort makecode = (scancode & 0b01111111);              ///< 获得通码
 
+    if (makecode == CODE_PRINT_SCREEN_DOWN)         ///< print screen 按键，在有些键盘发送的是 0xe0 0x37 表示按下
+    {
+        makecode = KEY_PRINT_SCREEN;
+    }
+    /// 通码非法
+    if (makecode > KEY_PRINT_SCREEN)
+    {
+        return;
+    }
+
     /// 是否是断码，按键抬起
     bool breakcode = ((scancode & 0b10000000) != 0);
 
     /// 这里一次按键会触发两次，通码一次，断码一次，当断码触发时表示一个按键结束，我们只打印通码，断码直接返回。
-    if (breakcode)                                          ///< 处理断码
+    if (breakcode)                                          ///< 处理断码，按键抬起，直接返回
     {
         /// 如果是则设置状态
         keymap[makecode][ext] = false;
@@ -280,10 +298,18 @@ void keymap_handler(int idt_index)
     {
         shift = !shift;
     }
+
+    /// 如果 shift 键按下
+    if(keymap[KEY_SHIFT_L][2] || keymap[KEY_SHIFT_R][2])
+    {
+        shift = !shift;
+    }
+
     /// 获得按键 ASCII 码
     char ch = INV;
 
-    if (ext == 3)                                            ///< 如果是扩展按键（如 右侧 Ctrl 键）
+    /// [/?] 这个键比较特殊，只有这个键扩展码和普通码一样，别的都有像 ctrl_l 和 ctrl_r 这样的区分
+    if (ext == 3 && (makecode != KEY_SLASH))    ///< 如果是扩展按键（如 右侧 Ctrl 键）
     {
         ch = keymap[makecode][1];
     }
