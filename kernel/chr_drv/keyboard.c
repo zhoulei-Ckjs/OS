@@ -1,6 +1,7 @@
 #include "linux/kernel.h"
 #include "asm/io.h"
 #include "sys/types.h"
+#include "linux/traps.h"
 
 /**
  * 一个按键按下会触发中断两次
@@ -235,6 +236,8 @@ void keymap_handler(int idt_index)
 {
     uchar ext = 2;                                          ///< keymap 状态索引，默认没有 shift 键
     uchar scancode = in_byte(0x60);
+
+    send_eoi(idt_index);
 
     /// 是扩展码字节前缀
     /**

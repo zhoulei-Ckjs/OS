@@ -39,7 +39,8 @@ ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/kernel/gdt.o \
 	${BUILD}/kernel/idt.o \
 	${BUILD}/kernel/asm/interrupt_handler.o \
-	${BUILD}/kernel/chr_drv/keyboard.o
+	${BUILD}/kernel/chr_drv/keyboard.o \
+	${BUILD}/kernel/traps.o
 	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
 
 ${BUILD}/lib/%.o: lib/%.c

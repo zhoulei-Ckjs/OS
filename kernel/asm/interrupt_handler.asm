@@ -33,7 +33,7 @@ interrupt_handler:
 ;   低地址       esp
 global keymap_handler_entry
 keymap_handler_entry:
-    push 0x21
+    push 0x21       ; 0x21 表示为键盘中断
     call keymap_handler
     add esp, 4
 
