@@ -8,6 +8,8 @@ interrupt_descriptor interrupt_table[INTERRUPT_TABLE_SIZE] = {0};       ///< 中
 char idt_ptr[6] = {0};                      ///< 中断向量表重新指向的位置
 extern void interrupt_handler();
 extern void keymap_handler_entry();         ///< 键盘中断
+/// 是在汇编 interrupt_handler.asm 中定义的
+extern int interrupt_handler_table[0x2f];   ///< 默认中断处理函数
 
 void idt_init()
 {
@@ -24,6 +26,12 @@ void idt_init()
         if(0x21 == i)
         {
             handler = (int)keymap_handler_entry;
+        }
+
+        /// 0x00 到 0x15 的中断号具有特定的、预先定义好的功能。
+        if(i <= 0x15)
+        {
+            handler = (int)(interrupt_handler_table[i]);    ///< 默认异常处理函数
         }
 
         p->offset0 = handler & 0xffff;
