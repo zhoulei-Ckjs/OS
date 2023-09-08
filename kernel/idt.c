@@ -1,11 +1,11 @@
-#include "linux/head.h"
+#include "linux/traps.h"
 #include "string.h"
 #include "asm/system.h"
 #include "linux/kernel.h"
 
 #define INTERRUPT_TABLE_SIZE    256         ///< 中断门个数
 interrupt_descriptor interrupt_table[INTERRUPT_TABLE_SIZE] = {0};       ///< 中断描述符表
-char idt_ptr[6] = {0};                      ///< 中断向量表重新指向的位置
+xdt_ptr_t idt_ptr;                          ///< 中断向量表重新指向的位置
 extern void interrupt_handler();
 extern void keymap_handler_entry();         ///< 键盘中断
 /// 是在汇编 interrupt_handler.asm 中定义的
@@ -42,12 +42,15 @@ void idt_init()
         p->segment = 0;                     ///< 系统段
         p->DPL = 0;                         ///< 内核态
         p->present = 1;                     ///< 有效
+
+        /// 最后一个作为结尾标志，验证我们用 lidt 传递的 limit 是否正确，limit 少一 bit 都会导致加载的 idt 少一项。
+//        if(i == INTERRUPT_TABLE_SIZE - 1)
+//        {
+//            memset(p, 0xFF, 8); ///< 我们将数据置为 0b1111...1111 用于测试，可以直观的看到结果
+//        }
     }
 
-    *((short*)idt_ptr) = INTERRUPT_TABLE_SIZE * 8;              ///< 每个中断描述符 8 字节，共定义了 256 个。
-    *((int*)(idt_ptr + 2)) = (int)(&interrupt_table);           ///< 中断描述符地址。
-
-    BOCHS_DEBUG_MAGIC
+    write_xdt_ptr(&idt_ptr, (int)interrupt_table, INTERRUPT_TABLE_SIZE * 8 - 1);
 
     /// volatile 告诉编译器不要优化这段汇编代码，确保汇编指令按书写顺序执行，防止编译器将这段汇编指令移除（即使输出未使用）
     __asm__ volatile("lidt idt_ptr;");      ///< 加载中断描述符表

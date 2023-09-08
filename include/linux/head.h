@@ -21,18 +21,18 @@ typedef struct gdt_item
 } __attribute__((packed)) gdt_item_t;   ///< 按紧凑方式对结构体进行内存对齐，取消默认的对齐填充
 
 /**
- * @brief 定义存储 gdt 信息的结构体
+ * @brief 定义存储 gdt、idt 信息的结构体
  */
 #pragma pack(2)
-typedef struct global_descriptor_table_pointer
+typedef struct descriptor_table
 {
     short limit;        ///< 界限（表的字节数 - 1）
-    gdt_item_t* base;   ///< gdt 表存储的地址
-}gdt_ptr_t;
+    int base;           ///< gdt、idt 表存储的地址
+}xdt_ptr_t;
 #pragma pack()
 
 /**
- * @brief 中断描述符
+ * @brief 中断描述符，8个字节
  */
 typedef struct interrupt_descriptor
 {

@@ -1,10 +1,10 @@
-#include "linux/head.h"
+#include "linux/traps.h"
 #include "string.h"
 #include "macro.h"
 #include "linux/kernel.h"
 #include "asm/system.h"
 
-gdt_ptr_t gdt_ptr;              ///< 存储 gdt 信息的全局结构体
+xdt_ptr_t gdt_ptr;              ///< 存储 gdt 信息的全局结构体
 
 /**
  * @brief 全局描述符表。用于存储段描述符，每个描述符占 8 字符。
@@ -90,8 +90,7 @@ void gdt_init()
     r3_code_selector = 4 << 3 | 0b011;                       ///< 索引为 4，请求特权级为 ring3
     r3_data_selector = 5 << 3 | 0b011;                       ///< 索引为 5，请求特权级为 ring3
 
-    gdt_ptr.base = gdt;
-    gdt_ptr.limit = sizeof(gdt) - 1;
+    write_xdt_ptr(&gdt_ptr, (int)gdt, sizeof(gdt) - 1);
 
     __asm__ volatile ("lgdt gdt_ptr;");                      ///< 重新加载 gdt 表
 }

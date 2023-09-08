@@ -1,6 +1,8 @@
 #ifndef OS_TRAPS_H
 #define OS_TRAPS_H
 
+#include "linux/head.h"
+
 /**
  * @brief 初始化 gdt 表。
  */
@@ -17,5 +19,13 @@ void idt_init();
  * @param idt_index
  */
 void send_eoi(int idt_index);
+
+/**
+ * @brief 写 gdt、idt 表信息。
+ * @param p gdt、idt 表指针。
+ * @param limit 长度（字节），一般为 sizeof(gdt/idt) - 1，因为 base + limit 为最后一个字节。
+ * @param base 基地址。
+ */
+void write_xdt_ptr(xdt_ptr_t* p,  int base, short limit);
 
 #endif //OS_TRAPS_H
