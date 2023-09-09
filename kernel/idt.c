@@ -8,6 +8,7 @@ interrupt_descriptor interrupt_table[INTERRUPT_TABLE_SIZE] = {0};       ///< 中
 xdt_ptr_t idt_ptr;                          ///< 中断向量表重新指向的位置
 extern void interrupt_handler();
 extern void keymap_handler_entry();         ///< 键盘中断
+extern void clock_handler_entry();          ///< 时钟中断
 /// 是在汇编 interrupt_handler.asm 中定义的
 extern int interrupt_handler_table[0x2f];   ///< 默认中断处理函数
 
@@ -21,6 +22,12 @@ void idt_init()
         memset(p, '\0', sizeof(interrupt_descriptor));
 
         int handler = (int)interrupt_handler;
+
+        /// 时钟中断
+        if(0x20 == i)
+        {
+            handler = (int)clock_handler_entry;
+        }
 
         /// 键盘中断
         if(0x21 == i)

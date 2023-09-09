@@ -8,6 +8,4 @@ void main(void)
     idt_init();         ///< 初始化中断
 
     __asm__("sti;");    ///< 启用中断
-
-//    int i = 10 / 0;     ///< 除零异常
 }
