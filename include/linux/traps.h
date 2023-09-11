@@ -14,6 +14,11 @@ void gdt_init();
 void idt_init();
 
 /**
+ * @brief 时钟初始化，设置中断频率（每秒产生多少个中断）
+ */
+void clock_init();
+
+/**
  * @brief 发送 end of interrupt，当中断处理完成后，必须向 PIC 发送 EOI 命令，
  * 否则PIC会认为中断仍在处理中，不会发送新的中断。
  * @param idt_index
