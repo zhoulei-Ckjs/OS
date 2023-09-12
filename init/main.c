@@ -1,6 +1,7 @@
 #include "linux/tty.h"
 #include "linux/traps.h"
 #include "sys/types.h"
+#include "asm/system.h"
 
 void main(void)
 {
@@ -9,6 +10,6 @@ void main(void)
     idt_init();         ///< 初始化中断
     clock_init();       ///< 初始化时钟
 
-    __asm__("sti;");    ///< 启用中断
+    STI                 ///< 启用中断
     while(true);
 }
