@@ -1,6 +1,9 @@
 BUILD:=./build
 
 HD_IMG_NAME:= "./${BUILD}/hd.img"
+SETUP_DISK_START_SECTOR=2		# setup 程序从磁盘的第 2 个扇区开始加载（从 1 开始计数，CHS 模式）
+SETUP_DISK_LEN_SECTORS=2		# setup 程序在占用几个山区（1 个扇区 512 字节）
+SYSTEM_START_SECTOR=3			# system.bin 在磁盘的起始扇区位置（从 0 开始计数，LBA 模式）
 SYSTEM_SECTORS=34				# 内核拷贝扇区个数
 LOAD_KERNEL_ADDR = 0x00			# 内核加载位置
 
@@ -21,8 +24,8 @@ DEBUG:= -g
 all: clean ${BUILD}/boot/boot.o ${BUILD}/boot/setup.o ${BUILD}/system.bin
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(HD_IMG_NAME)
 	dd if=${BUILD}/boot/boot.o of=${HD_IMG_NAME} bs=512 seek=0 count=1 conv=notrunc
-	dd if=${BUILD}/boot/setup.o of=$(HD_IMG_NAME) bs=512 seek=1 count=1 conv=notrunc
-	dd if=${BUILD}/system.bin of=$(HD_IMG_NAME) bs=512 seek=2 count=${SYSTEM_SECTORS} conv=notrunc
+	dd if=${BUILD}/boot/setup.o of=$(HD_IMG_NAME) bs=512 seek=1 count=${SETUP_DISK_LEN_SECTORS} conv=notrunc
+	dd if=${BUILD}/system.bin of=$(HD_IMG_NAME) bs=512 seek=${SYSTEM_START_SECTOR} count=${SYSTEM_SECTORS} conv=notrunc
 
 ${BUILD}/system.bin : ${BUILD}/kernel.bin
 	objcopy -O binary ${BUILD}/kernel.bin ${BUILD}/system.bin
@@ -72,7 +75,7 @@ ${BUILD}/boot/head.o : boot/head.asm
 
 ${BUILD}/boot/%.o: boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot)
-	nasm -f bin -w+error -D SYSTEM_SECTORS=${SYSTEM_SECTORS} -D LOAD_KERNEL_ADDR=${LOAD_KERNEL_ADDR} $< -o $@
+	nasm -f bin -w+error -D SETUP_DISK_START_SECTOR=${SETUP_DISK_START_SECTOR} -D SETUP_DISK_LEN_SECTORS=${SETUP_DISK_LEN_SECTORS} -D SYSTEM_START_SECTOR=${SYSTEM_START_SECTOR} -D SYSTEM_SECTORS=${SYSTEM_SECTORS} -D LOAD_KERNEL_ADDR=${LOAD_KERNEL_ADDR} $< -o $@
 	# -f bin 	裸机二进制格式，编译结果是一个纯二进制文件，没有段信息、没有调试信息，也无法被链接器 ld 使用。
 	# -w+error	让警告变为返回值非 0，让 Make 报错。
 

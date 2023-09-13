@@ -31,11 +31,11 @@ _start:
 load_setup:
     mov ch, 0       ; 0 柱面。
     mov dh, 0       ; 0 磁头。
-    mov cl, 2       ; 2 扇区。
+    mov cl, SETUP_DISK_START_SECTOR ; 扇区。(第 SETUP_DISK_START_SECTOR 个扇区开始读取并加载)
     mov bx, LOAD_SETUP_ADDR         ; 数据往哪读。
 
     mov ah, 0x02    ; 读盘操作。
-    mov al, 1       ; 连续读 1 个扇区。
+    mov al, SETUP_DISK_LEN_SECTORS  ; 连续读 SETUP_DISK_LEN_SECTORS 个扇区。
     mov dl, 0x80    ; 驱动器编号，软盘编号 0x00，硬盘编号从 0x80 开始。
 
     int 0x13

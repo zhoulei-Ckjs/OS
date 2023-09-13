@@ -102,7 +102,7 @@ protect_mode:
     mov esi, loading_kernel     ; 待输出字符串。
     call print
 
-    mov ecx, 2      ; 从哪个扇区开始读，lba 读硬盘方式是以下标 0 开始的
+    mov ecx, SYSTEM_START_SECTOR    ; 从哪个扇区开始读，lba 读硬盘方式是以下标 0 开始的
     mov bl, SYSTEM_SECTORS      ; 读取扇区数量
     mov edi, LOAD_KERNEL_ADDR   ; 将磁盘读取到内存位置
     call read_disk  ; 读取磁盘

@@ -3,8 +3,8 @@
 0xFFFE
             加载了 8KB 左右与中断向量表对应的若干中断程序。
 0xE05B
-0x7FFF
-            setup.asm 程序在内存中的位置。
+0x81FF
+            setup.asm 程序在内存中的位置（1024字节）。
 0x7E00
 0x7DFF
             boot.asm (size = 512B = 0x200B)。
