@@ -1,6 +1,6 @@
 LOAD_SETUP_ADDR equ 0x7E00      ; setup 程序加载的内存起始地址。
 
-; 构建 GDT 表所用数据
+; 1.构建 GDT 表所用数据
 GDT_MEMORY_BASE equ 0           ; 内存开始的位置：段地址
 GDT_MEMORY_LIMIT equ 0xFFFFF    ; 段界限，20 位寻址空间的最大值。
                                 ; 实际上如果以 4K 为单位，即每 bit 代表 4K，则可以访问 2^32 = 4G 的内存。
@@ -13,6 +13,11 @@ code_selector equ (1 << 3)      ; 代码段选择子，标号为 1，最后 3bit
 data_selector equ (2 << 3)      ; 数据段选择子
 b8000_selector equ (3 << 3)     ; 视频段选择子
 
+; 2.内存检测所用数据
+; 内存检测需要调用 BIOS 中断，进行多次检测（因为可能有多块连续的内存），
+; 每次检测我们给 BISO 传递 20 字节，让 BIOS 将本次检测结果写到这个内存中。
+ARDS_TIMES_BUFFER equ 0x8200    ; 用于记录检测了多少次内存，如检测了 5 次，则共有 5 块分离的内存
+ARDS_BUFFER equ 0x8202          ; 从这个地址开始，填写检测结果，检测 5 次，则从这个地址写 20 * 5 = 100 字节。
 
 [ORG LOAD_SETUP_ADDR]           ; setup 从 LOAD_SETUP_ADDR 地址开始汇编。
 
@@ -54,7 +59,51 @@ gdt_ptr:                        ; 加载gdt表用 gdt_ptr 指针
 
 [SECTION .text]
 [BITS 16]
-global _start
+
+; 内存检测
+memory_check:
+    xor ebx, ebx            ; ebx = 0
+    mov di, ARDS_BUFFER     ; es:di 指向一块内存   es因为前面已设置为0，这里不重复赋值
+.loop:
+    mov eax, 0xe820         ; ax = 0xe820
+        ; 将值 0xe820 存储在 eax 寄存器中，这通常用作功能码，指示 BIOS 或系统服务程序执行获取系统内存分布信息的功能。
+    mov ecx, 20
+        ; 将 ECX 寄存器的值设置为 20，这是传递给 BIOS 的缓冲区大小，指明了内存映射记录的大小。
+        ; 通常，这个大小为 20 字节（0x14 字节），每个内存映射条目的格式。
+    mov edx, 0x534D4150     ; edx = 0x534D4150
+        ; 将 EDX 寄存器的值设置为 'SMAP' 的 ASCII 码（0x534D4150）。
+        ; 这是一个签名，操作系统通过这个签名来验证 BIOS 返回的信息是否有效。
+        ; 这是一个魔术数，用来确认 BIOS 支持这项功能和正确地响应请求。
+    int 0x15
+        ; 执行中断 15H 调用。它传递了前面设置的参数（EAX=0xE820, ECX=20, EDX='SMAP'），请求 BIOS 返回系统的内存映射。
+        ; 这个中断调用会填充先前准备好的内存区域（通过 ES:DI 指向的缓冲区）来返回内存映射信息，
+        ; 同时更新 EAX 寄存器为 'SMAP'，以确认操作成功，
+        ; 并且将下一次调用所需的 continuation value 返回在 EBX 中，用于连续获取所有内存区域信息。
+
+    jc .memory_check_error   ; 如果出错，打印错误信息
+
+    add di, cx              ; 下次填充的结果存到下个结构体
+
+    inc dword [ARDS_TIMES]  ; 检测次数 + 1
+
+    cmp ebx, 0              ; 在检测的时候，ebx 会被 bios 修改为连续值用于下次检测，ebx 不为 0 就要继续检测
+    jne .loop
+
+    mov ax, [ARDS_TIMES]            ; 保存内存检测次数
+    mov [ARDS_TIMES_BUFFER], ax
+
+    mov [CHECK_BUFFER_OFFSET], di   ; 保存 offset
+
+.memory_check_success:
+    mov si, memory_check_success_msg
+    call print_16
+    jmp _start
+
+.memory_check_error:
+    mov si, memory_check_error_msg
+    call print_16
+    jmp $
+
 _start:
     cli                         ; 关闭中断。
 
@@ -97,31 +146,52 @@ protect_mode:
     mov ss, ax
 
     ; 打印 “加载内核”
-    mov eax, 1                  ; 文字输出的行。
+    mov eax, 2                  ; 文字输出的行。
     mov ebx, 0                  ; 文字输出的列。
     mov esi, loading_kernel     ; 待输出字符串。
-    call print
-
+    call print_32
     mov ecx, SYSTEM_START_SECTOR    ; 从哪个扇区开始读，lba 读硬盘方式是以下标 0 开始的
     mov bl, SYSTEM_SECTORS      ; 读取扇区数量
     mov edi, LOAD_KERNEL_ADDR   ; 将磁盘读取到内存位置
     call read_disk  ; 读取磁盘
 
     ; 打印 “内核加载完成”
-    mov eax, 2                  ; 文字输出的行。
+    mov eax, 3                  ; 文字输出的行。
     mov ebx, 0                  ; 文字输出的列。
     mov esi, done_loading       ; 待输出字符串。
-    call print
+    call print_32
 
     ; 打印 “跳转到内核”
-    mov eax, 3
+    mov eax, 4
     mov ebx, 0
     mov esi, jumping_to_kernel
-    call print
+    call print_32
+    xchg bx, bx
 
     jmp dword code_selector:LOAD_KERNEL_ADDR    ; 跳转到内核开始执行。
     ud2             ; 如果跳转失败或者控制流莫名其妙回来了，就触发非法指令异常。
 
+[bits 16]
+; print函数，用于向屏幕输出字符。
+; 调用方式:
+;   mov     si, msg   ; 1 传入字符串
+;   call    print_16  ; 2 调用
+print_16:
+    mov ah, 0x0e    ; 指定要使用的功能是 0x0e，0x0e 表示在 TTY 模式下写字符。
+    mov bh, 0       ; 表示在第 0 个页面输出字符。
+    mov bl, 0x01    ; 蓝色字符，黑色背景。
+.loop:
+    mov al, [si]    ; 要输出的字符。
+    cmp al, 0       ; 字符串不结束就一直打印。
+    jz .done        ; 字符串结束，跳转到 .done。
+    int 0x10        ; 调用bios的10号中断。
+
+    inc si
+    jmp .loop
+.done:
+    ret             ; 结束返回。
+
+[bits 32]
 ; LBA(Logical Block Addressing) 方式读取磁盘。
 ; 使用方式：
 ;    mov ecx, 1                 ; 从哪个扇区开始读，LBA读硬盘方式是以下标 0 开始的。
@@ -188,7 +258,7 @@ read_disk:
 ;   mov eax, <line you want to print>   ; 文字输出的行。
 ;   mov ebx, <column you want to print> ; 文字输出的列。
 ;   mov esi, <msg to be printed>        ; 待输出字符串。
-print:
+print_32:
     ; 计算显示位置，每行 80 个字符，一个字符 2 个字节。
     imul eax, 80
     add eax, ebx
@@ -211,7 +281,13 @@ print:
     ret
 
 [SECTION .data]
-[BITS 32]
+; 数据段无需指定汇编位数，.data 定义的数据长度不变，如 dw 就是定义了 16bit 的数据。
+
+; 2.内存检测用
+ARDS_TIMES dw 0     ; define word，定义一个字16位，用于内存检测次数计算，检测结果最终要写到 ARDS_TIMES_BUFFER 的地址。
+; 存储填充以后的 offset，下次检测的结果接着写。
+; 也就是上面的写了 20 × 5 = 100 字节后，的结尾在哪里。我们将这个结尾存储到这个值中。
+CHECK_BUFFER_OFFSET dw 0
 
 loading_kernel:
     db "[setup.asm] : loading kernel ...", 0
@@ -219,3 +295,7 @@ done_loading:
     db "[setup.asm] : done loading kernel ", 0
 jumping_to_kernel:
     db "[setup.asm] : now, jumping to kernel ...", 0    ; 这里如果少写了","，会导致 jumping_to_kernel 没编译出来
+memory_check_error_msg:
+    db "[setup.asm] : memory check fail...", 10, 13, 0
+memory_check_success_msg:
+    db "[setup.asm] : memory check success...", 10, 13, 0
