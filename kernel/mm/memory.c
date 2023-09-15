@@ -20,3 +20,8 @@ void print_check_memory_info()
                tmp->length_high, tmp->length_low, tmp->type);
     }
 }
+
+void memory_init()
+{
+    printk("memory init...");
+}

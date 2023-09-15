@@ -12,9 +12,14 @@ typedef struct check_memmory_item
     unsigned int  base_addr_high;   ///< 内存基地址的高 32 位
     unsigned int  length_low;       ///< 内存块长度的低 32 位
     unsigned int  length_high;      ///< 内存块长度的高 32 位
-    /// 内存类型 1：通常表示系统检测到的主内存模块，可能是主板上默认的内存或主存储器。
-    /// 内存类型 2：可能表示系统检测到的外部内存扩展模块，例如插槽中安装的扩展内存模块。
-    unsigned int  type;             ///< 描述内存块的类型
+
+    /// 描述内存块的类型。
+    /// 内存类型 1：
+    ///     AddressRangeMemory，这是可用的、正常的 RAM。
+    ///     操作系统可以自由地读写这些内存区域，并将其分配给应用程序或内核使用。
+    /// 内存类型 2：
+    ///     AddressRangeReserved，这些是不可用的、被硬件保留的内存区域。
+    unsigned int  type;
 }check_memmory_item_t;
 
 /**
@@ -30,5 +35,10 @@ typedef struct check_memory_info
  * @brief 打印内存检测信息
  */
 void print_check_memory_info();
+
+/**
+ * @brief 内存初始化
+ */
+void memory_init();
 
 #endif //OS_MM_H

@@ -12,6 +12,7 @@ void main(void)
     clock_init();       ///< 初始化时钟
 
     print_check_memory_info();
+    memory_init();
 
     STI                 ///< 启用中断
     while(true);
