@@ -2,6 +2,7 @@
 #include "linux/traps.h"
 #include "sys/types.h"
 #include "asm/system.h"
+#include "linux/mm.h"
 
 void main(void)
 {
@@ -9,6 +10,8 @@ void main(void)
     gdt_init();         ///< 初始化 gdt 表
     idt_init();         ///< 初始化中断
     clock_init();       ///< 初始化时钟
+
+    print_check_memory_info();
 
     STI                 ///< 启用中断
     while(true);

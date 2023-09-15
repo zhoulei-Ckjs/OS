@@ -46,7 +46,8 @@ ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/kernel/traps.o \
 	${BUILD}/kernel/exception.o \
 	${BUILD}/kernel/asm/clock_handler.o \
-	${BUILD}/kernel/chr_drv/clock.o
+	${BUILD}/kernel/chr_drv/clock.o \
+	${BUILD}/kernel/mm/memory.o
 	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
 
 ${BUILD}/lib/%.o: lib/%.c
@@ -60,6 +61,10 @@ ${BUILD}/kernel/%.o: kernel/%.c
 ${BUILD}/kernel/asm/%.o: kernel/asm/%.asm
 	$(shell mkdir -p ${BUILD}/kernel/asm)
 	nasm -f elf32 -w+error -g $< -o $@
+
+${BUILD}/kernel/mm/%.o: kernel/mm/%.c
+	$(shell mkdir -p ${BUILD}/kernel/mm)
+	gcc ${CFLAGS} ${INCLUDE} ${DEBUG} -c $< -o $@
 
 ${BUILD}/kernel/chr_drv/%.o: kernel/chr_drv/%.c
 	$(shell mkdir -p ${BUILD}/kernel/chr_drv)

@@ -2,6 +2,7 @@
 #include "linux/kernel.h"
 
 static char buf[1024];
+/// TODO 无法打印 long long 类型
 /**
  * 依据压栈规则，栈中数据如下：
  * 如 printk("%s", "123456")         "123456" 是定义了字符串常量，并返回地址
