@@ -22,6 +22,8 @@ typedef struct check_memmory_item
     unsigned int  type;
 }check_memmory_item_t;
 
+#define ZONE_VALID 1                ///< 可用的、正常的内存。
+
 /**
  * @brief 内存块检测信息
  */
@@ -30,6 +32,16 @@ typedef struct check_memory_info
     unsigned short          times;  ///< 多少块内存
     check_memmory_item_t*   data;   ///< 第一个块内存的指针
 }check_memory_info_t;
+
+/**
+ * @brief 描述一块物理内存的结构
+ */
+typedef struct physics_memory_info
+{
+    uint addr_start_;               ///< 可用内存起始地址 一般是 1 M
+    uint addr_end_;                 ///< 可用内存结束地址
+    uint valid_mem_size_;           ///< 可用内存大小
+}physics_memory_info_t;
 
 /**
  * @brief 打印内存检测信息

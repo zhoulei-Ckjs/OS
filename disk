@@ -1,8 +1,9 @@
 磁盘内容分布：
+address         content
 512 * 37
-    system.bin
+                system.bin (size = 512 * 34)
 512 * 3
-    setup.o
+                setup.o (size = 512 * 2)
 512 * 1
-    boot.o
+                boot.o (size = 512)
 000
