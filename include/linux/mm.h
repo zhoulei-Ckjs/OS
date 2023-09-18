@@ -41,6 +41,9 @@ typedef struct physics_memory_info
     uint addr_start_;               ///< 可用内存起始地址 一般是 1 M
     uint addr_end_;                 ///< 可用内存结束地址
     uint valid_mem_size_;           ///< 可用内存大小
+    uint pages_total_;              ///< 机器物理内存共多少 page
+    uint pages_free_;               ///< 机器物理内存还剩多少 page
+    uint pages_used_;               ///< 机器物理内存用了多少 page
 }physics_memory_info_t;
 
 /**

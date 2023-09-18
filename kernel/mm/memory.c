@@ -49,5 +49,11 @@ void memory_init()
         printk("addr_start = %x\n", g_physics_memory.addr_start_);
         printk("addr_end = %x\n", g_physics_memory.addr_end_);
         printk("size = %x\n", g_physics_memory.valid_mem_size_);
+        return;
     }
+
+    /// 初始化物理内存
+    g_physics_memory.pages_total_ = g_physics_memory.valid_mem_size_ >> 12;     ///< 4096 byte 为 1 页
+    g_physics_memory.pages_used_ = 0;
+    g_physics_memory.pages_free_ = g_physics_memory.pages_total_ - g_physics_memory.pages_used_;
 }
