@@ -44,6 +44,7 @@ typedef struct physics_memory_info
     uint pages_total_;              ///< 机器物理内存共多少 page
     uint pages_free_;               ///< 机器物理内存还剩多少 page
     uint pages_used_;               ///< 机器物理内存用了多少 page
+    uchar* map_;                    ///< 物理映射表位置。
 }physics_memory_info_t;
 
 /**

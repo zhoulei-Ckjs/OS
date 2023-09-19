@@ -1,5 +1,6 @@
 #include "linux/kernel.h"
 #include "linux/mm.h"
+#include "string.h"
 
 #define ARDS_TIMES_BUFFER 0x8200
 
@@ -56,4 +57,27 @@ void memory_init()
     g_physics_memory.pages_total_ = g_physics_memory.valid_mem_size_ >> 12;     ///< 4096 byte 为 1 页
     g_physics_memory.pages_used_ = 0;
     g_physics_memory.pages_free_ = g_physics_memory.pages_total_ - g_physics_memory.pages_used_;
+
+    /// 初始化物理页表
+    g_physics_memory.map_ = (uchar*)(g_physics_memory.addr_start_);
+    memset(g_physics_memory.map_, 0, g_physics_memory.pages_total_);
+    uint bitmap_item_used_ = g_physics_memory.pages_total_ / 4096;  ///< 1B 映射一个 page，共需要这么多 page
+    if (0 != g_physics_memory.pages_total_ % 4096)
+    {
+        bitmap_item_used_ += 1;
+    }
+    for (int i = 0; i < bitmap_item_used_; ++i)     ///< 页表标记为占用状态
+    {
+        g_physics_memory.map_[i] = 1;
+        g_physics_memory.pages_used_++;
+        g_physics_memory.pages_free_--;
+    }
+    printk("physical memory block 0x%x\n"
+           "    this memory block starts at 0x%x, ends at 0x%x\n"
+           "    it contains %d pages(each page %dB)\n"
+           "    physical memory map starts at: 0x%X, using %d pages, %d pages left!\n",
+           &g_physics_memory,
+           g_physics_memory.addr_start_, g_physics_memory.addr_end_,
+           g_physics_memory.pages_total_, 4096,
+           g_physics_memory.map_, g_physics_memory.pages_used_, g_physics_memory.pages_free_);
 }
