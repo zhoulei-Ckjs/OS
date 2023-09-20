@@ -54,15 +54,15 @@ void memory_init()
     }
 
     /// 初始化物理内存
-    g_physics_memory.pages_total_ = g_physics_memory.valid_mem_size_ >> 12;     ///< 4096 byte 为 1 页
+    g_physics_memory.pages_total_ = g_physics_memory.valid_mem_size_ / PAGE_SIZE;     ///< 4096 byte 为 1 页
     g_physics_memory.pages_used_ = 0;
     g_physics_memory.pages_free_ = g_physics_memory.pages_total_ - g_physics_memory.pages_used_;
 
     /// 初始化物理页表
     g_physics_memory.map_ = (uchar*)(g_physics_memory.addr_start_);
     memset(g_physics_memory.map_, 0, g_physics_memory.pages_total_);
-    uint bitmap_item_used_ = g_physics_memory.pages_total_ / 4096;  ///< 1B 映射一个 page，共需要这么多 page
-    if (0 != g_physics_memory.pages_total_ % 4096)
+    uint bitmap_item_used_ = g_physics_memory.pages_total_ / PAGE_SIZE;      ///< 1B 映射一个 page，共需要这么多 page
+    if (0 != g_physics_memory.pages_total_ % PAGE_SIZE)
     {
         bitmap_item_used_ += 1;
     }
@@ -78,6 +78,6 @@ void memory_init()
            "    physical memory map starts at: 0x%X, using %d pages, %d pages left!\n",
            &g_physics_memory,
            g_physics_memory.addr_start_, g_physics_memory.addr_end_,
-           g_physics_memory.pages_total_, 4096,
+           g_physics_memory.pages_total_, PAGE_SIZE,
            g_physics_memory.map_, g_physics_memory.pages_used_, g_physics_memory.pages_free_);
 }

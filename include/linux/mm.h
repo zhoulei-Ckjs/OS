@@ -3,6 +3,8 @@
 
 #include "sys/types.h"
 
+#define PAGE_SIZE 4096              ///< 单个内存页的大小
+
 /**
  * @brief 内存块结构
  */
