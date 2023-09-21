@@ -81,3 +81,30 @@ void memory_init()
            g_physics_memory.pages_total_, PAGE_SIZE,
            g_physics_memory.map_, g_physics_memory.pages_used_, g_physics_memory.pages_free_);
 }
+
+void* get_free_page()
+{
+    bool find = false;
+    int i = g_physics_memory.pages_used_;
+    for(; i < g_physics_memory.pages_total_; ++i)
+    {
+        if(0 == g_physics_memory.map_[i])
+        {
+            find = true;
+            break;
+        }
+    }
+    if(find == false)
+    {
+        printk("memory used up!");
+        return NULL;
+    }
+    g_physics_memory.map_[i] = 1;
+    g_physics_memory.pages_used_++;
+    g_physics_memory.pages_free_--;
+
+    void* ret = (void*)(g_physics_memory.addr_start_) + i * PAGE_SIZE;
+    printk("[%s]return: 0x%X, used: %d/%d pages\n", __FUNCTION__, ret,
+           g_physics_memory.pages_used_, g_physics_memory.pages_total_);
+    return ret;
+}

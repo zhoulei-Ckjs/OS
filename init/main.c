@@ -3,6 +3,7 @@
 #include "sys/types.h"
 #include "asm/system.h"
 #include "linux/mm.h"
+#include "linux/kernel.h"
 
 void main(void)
 {
@@ -13,6 +14,12 @@ void main(void)
 
     print_check_memory_info();
     memory_init();
+
+    for (int i = 0; i < 3; ++i)
+    {
+        void* p = get_free_page();
+        printk("find page 0x%p\n", p);
+    }
 
     STI                 ///< 启用中断
     while(true);

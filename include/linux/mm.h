@@ -25,6 +25,7 @@ typedef struct check_memmory_item
 }check_memmory_item_t;
 
 #define ZONE_VALID 1                ///< 可用的、正常的内存。
+#define ZONE_RESERVED 2             ///< ards 不可用区域，被硬件保留的内存区域。
 
 /**
  * @brief 内存块检测信息
@@ -58,5 +59,11 @@ void print_check_memory_info();
  * @brief 内存初始化
  */
 void memory_init();
+
+/**
+ * @brief 获取物理页
+ * @return 获取的物理页首地址
+ */
+void* get_free_page();
 
 #endif //OS_MM_H
