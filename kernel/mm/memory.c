@@ -104,7 +104,24 @@ void* get_free_page()
     g_physics_memory.pages_free_--;
 
     void* ret = (void*)(g_physics_memory.addr_start_) + i * PAGE_SIZE;
-    printk("[%s]return: 0x%X, used: %d/%d pages\n", __FUNCTION__, ret,
+    printk("[%s] return: 0x%X, used: %d/%d pages\n", __FUNCTION__, ret,
            g_physics_memory.pages_used_, g_physics_memory.pages_total_);
     return ret;
+}
+
+void free_page(void* page_start_addr)
+{
+    int addr = (int)page_start_addr;
+    if(addr < g_physics_memory.addr_start_ || addr > g_physics_memory.addr_end_)
+    {
+        printk("invalid address: 0x%x!\n", page_start_addr);
+        return;
+    }
+    int index = (addr - g_physics_memory.addr_start_) / PAGE_SIZE;
+    g_physics_memory.map_[index] = 0;
+    g_physics_memory.pages_used_--;
+    g_physics_memory.pages_free_++;
+
+    printk("[%s] freed: 0x%X, used: %d/%d pages\n", __FUNCTION__,
+           page_start_addr, g_physics_memory.pages_used_, g_physics_memory.pages_total_);
 }

@@ -41,12 +41,12 @@ typedef struct check_memory_info
  */
 typedef struct physics_memory_info
 {
-    uint addr_start_;               ///< 可用内存起始地址 一般是 1 M
-    uint addr_end_;                 ///< 可用内存结束地址
-    uint valid_mem_size_;           ///< 可用内存大小
-    uint pages_total_;              ///< 机器物理内存共多少 page
-    uint pages_free_;               ///< 机器物理内存还剩多少 page
-    uint pages_used_;               ///< 机器物理内存用了多少 page
+    int addr_start_;                ///< 可用内存起始地址 一般是 1 M
+    int addr_end_;                  ///< 可用内存结束地址
+    int valid_mem_size_;            ///< 可用内存大小
+    int pages_total_;               ///< 机器物理内存共多少 page
+    int pages_free_;                ///< 机器物理内存还剩多少 page
+    int pages_used_;                ///< 机器物理内存用了多少 page
     uchar* map_;                    ///< 物理映射表位置。
 }physics_memory_info_t;
 
@@ -65,5 +65,11 @@ void memory_init();
  * @return 获取的物理页首地址
  */
 void* get_free_page();
+
+/**
+ * @brief 释放物理页
+ * @param page 待释放物理内存首地址
+ */
+void free_page(void* page_start_addr);
 
 #endif //OS_MM_H

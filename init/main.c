@@ -18,7 +18,7 @@ void main(void)
     for (int i = 0; i < 3; ++i)
     {
         void* p = get_free_page();
-        printk("find page 0x%p\n", p);
+        free_page(p);
     }
 
     STI                 ///< 启用中断
