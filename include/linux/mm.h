@@ -72,4 +72,14 @@ void* get_free_page();
  */
 void free_page(void* page_start_addr);
 
+/**
+ * @brief 物理内存初始化，物理页表初始化
+ */
+void physical_memory_init();
+
+/**
+ * @brief 虚拟内存初始化
+ */
+void virtual_memory_init();
+
 #endif //OS_MM_H

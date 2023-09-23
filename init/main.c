@@ -13,13 +13,7 @@ void main(void)
     clock_init();       ///< 初始化时钟
 
     print_check_memory_info();
-    memory_init();
-
-    for (int i = 0; i < 3; ++i)
-    {
-        void* p = get_free_page();
-        free_page(p);
-    }
+    memory_init();      ///< 内存初始化
 
     STI                 ///< 启用中断
     while(true);
