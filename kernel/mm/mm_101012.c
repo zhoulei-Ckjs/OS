@@ -1,4 +1,7 @@
 #include "linux/mm.h"
+#include "string.h"
+#include "asm/system.h"
+#include "linux/kernel.h"
 
 void virtual_memory_init()
 {
@@ -7,6 +10,7 @@ void virtual_memory_init()
 
     /// PDT 里面的每项，即 PDE，内容是 PTT 页表地址 + 尾 12 位的权限位。
     int ptt = (int) get_free_page();
+    memset((int*)ptt, 0, PAGE_SIZE);
     /// 00000000000000000000000000000_普通用户也可以访问_可读写_物理页有效
     int pde = 0b00000000000000000000000000000111 | ptt;
     pdt[0] = pde;
@@ -34,4 +38,9 @@ void virtual_memory_init()
          */
         *item = 0b00000000000000000000000000000111 | actual_addr;
     }
+
+    BOCHS_DEBUG_MAGIC
+    set_cr3((uint)pdt);
+    enable_page();
+    BOCHS_DEBUG_MAGIC
 }
