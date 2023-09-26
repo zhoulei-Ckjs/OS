@@ -63,7 +63,7 @@ void memory_init()
 void* get_free_page()
 {
     bool find = false;
-    int i = g_physics_memory.pages_used_;
+    int i = 0;              ///< 从0开始找，防止遗漏
     for(; i < g_physics_memory.pages_total_; ++i)
     {
         if(0 == g_physics_memory.map_[i])
