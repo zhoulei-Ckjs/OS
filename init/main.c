@@ -3,7 +3,7 @@
 #include "sys/types.h"
 #include "asm/system.h"
 #include "linux/mm.h"
-#include "linux/kernel.h"
+#include "linux/task.h"
 
 void main(void)
 {
@@ -14,6 +14,8 @@ void main(void)
 
     print_check_memory_info();
     memory_init();      ///< 内存初始化
+
+    task_init();
 
     STI                 ///< 启用中断
     while(true);

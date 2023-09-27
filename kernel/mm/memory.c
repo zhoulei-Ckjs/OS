@@ -55,9 +55,6 @@ void memory_init()
 
     /// 物理内存初始化
     physical_memory_init();
-
-    /// 虚拟内存初始化
-    virtual_memory_init();
 }
 
 void* get_free_page()

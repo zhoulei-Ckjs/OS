@@ -49,7 +49,8 @@ ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/kernel/chr_drv/clock.o \
 	${BUILD}/kernel/mm/memory.o \
 	${BUILD}/kernel/mm/mm_101012.o \
-	${BUILD}/kernel/kernel.o
+	${BUILD}/kernel/kernel.o \
+	${BUILD}/kernel/task.o
 	ld -m elf_i386 $^ -o $@ -Ttext ${LOAD_KERNEL_ADDR}
 
 ${BUILD}/lib/%.o: lib/%.c
