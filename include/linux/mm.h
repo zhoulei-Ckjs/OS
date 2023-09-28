@@ -79,7 +79,8 @@ void physical_memory_init();
 
 /**
  * @brief 虚拟内存初始化
+ * @return 进程虚拟地址页表地址
  */
-void virtual_memory_init();
+void* virtual_memory_init();
 
 #endif //OS_MM_H

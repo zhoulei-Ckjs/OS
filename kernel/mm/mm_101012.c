@@ -3,7 +3,7 @@
 #include "asm/system.h"
 #include "linux/kernel.h"
 
-void virtual_memory_init()
+void* virtual_memory_init()
 {
     int *pdt = (int *) get_free_page();           ///< PDT表
     memset(pdt, 0, PAGE_SIZE);                    ///< 清零
@@ -43,4 +43,6 @@ void virtual_memory_init()
     set_cr3((uint)pdt);
     enable_page();
     BOCHS_DEBUG_MAGIC
+
+    return pdt;
 }
