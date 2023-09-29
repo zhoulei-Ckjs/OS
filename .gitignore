@@ -4,3 +4,4 @@ hd.img
 bx_enh_dbg.ini
 hd.img.lock
 cmake-build-debug
+bochs.log
