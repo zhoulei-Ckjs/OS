@@ -4,6 +4,9 @@
 
 #define ARDS_TIMES_BUFFER 0x8200
 
+/// 把1M以下内存称为低端内存
+#define VALID_MEMORY_FROM 0x100000
+
 /**
  * @brief 物理内存
  */
@@ -44,7 +47,7 @@ void memory_init()
 
     /// 我们只使用 1M 以上的内存，检测出的结果应该只有一块有效内存在 1M 以上，所以我们判断
     /// 是不是起始位置为 1M 就可以了。
-    if (0x100000 != g_physics_memory.addr_start_)
+    if (VALID_MEMORY_FROM != g_physics_memory.addr_start_)
     {
         printk("[%s:%d] no valid physics memory\n", __FILE__, __LINE__);
         printk("addr_start = %x\n", g_physics_memory.addr_start_);

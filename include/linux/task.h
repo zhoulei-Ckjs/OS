@@ -3,6 +3,8 @@
 
 #include "linux/mm.h"
 
+#define NR_TASKS 64 ///< 进程上限
+
 /**
  * @brief 进程描述信息
  */
