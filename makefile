@@ -23,6 +23,9 @@ DEBUG:= -g
 
 all: clean ${BUILD}/boot/boot.o ${BUILD}/boot/setup.o ${BUILD}/system.bin
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(HD_IMG_NAME)
+	# 这是 bochs 提供的创建硬盘的指令，执行后会提示 bochs 的配置文件中硬盘应该怎么配
+	# -hd: 创建硬盘
+	# -sectsize: 每个扇区大小（字节）
 	dd if=${BUILD}/boot/boot.o of=${HD_IMG_NAME} bs=512 seek=0 count=1 conv=notrunc
 	dd if=${BUILD}/boot/setup.o of=$(HD_IMG_NAME) bs=512 seek=1 count=${SETUP_DISK_LEN_SECTORS} conv=notrunc
 	dd if=${BUILD}/system.bin of=$(HD_IMG_NAME) bs=512 seek=${SYSTEM_START_SECTOR} count=${SYSTEM_SECTORS} conv=notrunc
