@@ -1,5 +1,27 @@
-# 内存设计 (bios)
-0xFFFF0     CPU 加电瞬间执行的位置，CS=0xF000，IP=0xFFF0。
+# BIOS内存 (Base Input & Output System memory)
+
+0xFFFFF
+            CPU 加电瞬间执行的位置，CS=0xF000，IP=0xFFF0。
+0xFFFF0
+0xFFFEF
+            ...
+0xC8000
+0xC7FFF
+            显式适配器BIOS。
+0xC0000
+0xBFFFF
+            用于文本模式显示适配器。
+0xB8000
+0xB7FFF
+            黑白显示适配器。
+0xB0000
+0xAFFFF
+            彩色显示适配器。
+0xA0000
+0x9FFFF
+            EBDA(Extended BIOS data area)扩展BIOS数据区。
+0x9FC00
+
 0xFFFE
             加载了 8KB 左右与中断向量表对应的若干中断程序。
 0xE05B
