@@ -67,6 +67,7 @@ ${BUILD}/kernel/%.o: kernel/%.c
 ${BUILD}/kernel/asm/%.o: kernel/asm/%.asm
 	$(shell mkdir -p ${BUILD}/kernel/asm)
 	nasm -f elf32 -w+error -g $< -o $@
+	# -f elf32	输出格式为 elf32
 
 ${BUILD}/kernel/mm/%.o: kernel/mm/%.c
 	$(shell mkdir -p ${BUILD}/kernel/mm)
