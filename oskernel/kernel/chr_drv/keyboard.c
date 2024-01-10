@@ -7,13 +7,15 @@
  * 按下返回的码叫通码 make code
  * 弹起返回的码叫断码 break code
  *
- * 断码 = 通码 | 8
+ * 断码 = 通码 | 0x80
+ * a 的通码 ： 0001 1110
+ * a 的断码 ： 1001 1110
  */
 
 #define INV 0         ///< 不可见字符
 
 typedef enum {
-    KEY_NONE,
+    KEY_NONE,       ///< 0
     KEY_ESC,
     KEY_1,
     KEY_2,
@@ -23,7 +25,7 @@ typedef enum {
     KEY_6,
     KEY_7,
     KEY_8,
-    KEY_9,
+    KEY_9,          ///< 10
     KEY_0,
     KEY_MINUS,
     KEY_EQUAL,
@@ -33,7 +35,7 @@ typedef enum {
     KEY_W,
     KEY_E,
     KEY_R,
-    KEY_T,
+    KEY_T,          ///< 20
     KEY_Y,
     KEY_U,
     KEY_I,
@@ -43,7 +45,7 @@ typedef enum {
     KEY_BRACKET_R,
     KEY_ENTER,
     KEY_CTRL_L,
-    KEY_A,
+    KEY_A,          ///< 30
     KEY_S,
     KEY_D,
     KEY_F,
@@ -53,7 +55,7 @@ typedef enum {
     KEY_K,
     KEY_L,
     KEY_SEMICOLON,
-    KEY_QUOTE,
+    KEY_QUOTE,      ///< 40
     KEY_BACKQUOTE,
     KEY_SHIFT_L,
     KEY_BACKSLASH,
@@ -63,7 +65,7 @@ typedef enum {
     KEY_V,
     KEY_B,
     KEY_N,
-    KEY_M,
+    KEY_M,          ///< 50
     KEY_COMMA,
     KEY_POINT,
     KEY_SLASH,
@@ -71,9 +73,9 @@ typedef enum {
     KEY_STAR,
     KEY_ALT_L,
     KEY_SPACE,
-    KEY_CAPSLOCK,
+    KEY_CAPSLOCK,   ///< 58
     KEY_F1,
-    KEY_F2,
+    KEY_F2,         ///< 60
     KEY_F3,
     KEY_F4,
     KEY_F5,
@@ -83,7 +85,7 @@ typedef enum {
     KEY_F9,
     KEY_F10,
     KEY_NUMLOCK,
-    KEY_SCRLOCK,
+    KEY_SCRLOCK,    ///< 70
     KEY_PAD_7,
     KEY_PAD_8,
     KEY_PAD_9,
@@ -93,7 +95,7 @@ typedef enum {
     KEY_PAD_6,
     KEY_PAD_PLUS,
     KEY_PAD_1,
-    KEY_PAD_2,
+    KEY_PAD_2,      ///< 80
     KEY_PAD_3,
     KEY_PAD_0,
     KEY_PAD_POINT,
@@ -103,13 +105,13 @@ typedef enum {
     KEY_F11,
     KEY_F12,
     KEY_59,
-    KEY_WIN_L,
+    KEY_WIN_L,      ///< 90
     KEY_WIN_R,
     KEY_CLIPBOARD,
     KEY_5D,
     KEY_5E,
 
-    KEY_PRINT_SCREEN,
+    KEY_PRINT_SCREEN,   ///< 95
 } key_index_t;
 
 static char keymap[][4] =
@@ -215,6 +217,8 @@ static char keymap[][4] =
     /* 0x5F */ {INV, INV, false, false}, // PrintScreen
 };
 
+static bool capslock_state;                         ///< 大写锁定
+
 /// 键盘中断处理函数
 void keymap_handler(int idt_index)
 {
@@ -222,7 +226,17 @@ void keymap_handler(int idt_index)
 
     ushort makecode = (scancode & 0x7f);            ///< 获得通码
 
+    /// 大写锁定，有的时候触发一次，再次按下后触发两次，不理解
+    if (makecode == KEY_CAPSLOCK)
+    {
+        capslock_state = !capslock_state;
+    }
+
     bool shift = false;                             ///< 大小写偏移
+    if (capslock_state)
+    {
+        shift = !shift;
+    }
     char ch = 0;                                    ///< 这里一次按键会打印两次 a，通码一次，断码一次
     ch = keymap[makecode][shift];
     printk("%c\n", ch);
