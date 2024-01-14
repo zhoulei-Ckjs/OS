@@ -226,6 +226,13 @@ void keymap_handler(int idt_index)
 
     ushort makecode = (scancode & 0x7f);            ///< 获得通码
 
+    /// 是否是断码，按键抬起
+    bool breakcode = ((scancode & 0x0080) != 0);
+    if (breakcode)                                  ///< 处理断码
+    {
+        return;
+    }
+
     /// 大写锁定，有的时候触发一次，再次按下后触发两次，不理解
     if (makecode == KEY_CAPSLOCK)
     {
@@ -237,6 +244,8 @@ void keymap_handler(int idt_index)
     {
         shift = !shift;
     }
+
+    /// 获得按键 ASCII 码
     char ch = 0;                                    ///< 这里一次按键会打印两次 a，通码一次，断码一次
     ch = keymap[makecode][shift];
     printk("%c\n", ch);
