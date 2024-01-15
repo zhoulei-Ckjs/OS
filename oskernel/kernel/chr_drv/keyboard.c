@@ -218,11 +218,34 @@ static char keymap[][4] =
 };
 
 static bool capslock_state;                         ///< 大写锁定
+static bool extcode_state;                          ///< 扩展码状态
 
 /// 键盘中断处理函数
 void keymap_handler(int idt_index)
 {
     uchar scancode = in_byte(0x60);             ///< 0x60端口是用于接收键盘数据的输入端口
+
+    /**
+     * 扩展码用于标识与标准码不同的键。比如，右侧的 Ctrl 键对应的扫描码为 0xE0 0x1D
+     * 而左侧的 Ctrl 键对应的扫描码为 0x1D。通过扩展码可以区分这两个键。
+     */
+    /// 是扩展码字节
+    if (scancode == 0xe0)
+    {
+        /// 置扩展状态
+        printk("extension code\n");
+        extcode_state = true;
+        return;
+    }
+
+    /// 是扩展码
+    if (extcode_state)
+    {
+        /// 修改扫描码，添加 0xe0 前缀
+        scancode |= 0xe000;
+        /// 扩展状态无效
+        extcode_state = false;
+    }
 
     ushort makecode = (scancode & 0x7f);            ///< 获得通码
 
