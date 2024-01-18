@@ -116,7 +116,7 @@ typedef enum {
 
 static char keymap[][4] =
 {
-    /// 扫描码 未与 shift 组合  与 shift 组合 以及相关状态
+    /// 扫描码未与 shift 组合____与 shift 组合____普通码（如左侧ctrl键）____扩展码（如右ctrl键）
     /* 0x00 */ {INV, INV, false, false},   // NULL
     /* 0x01 */ {0x1b, 0x1b, false, false}, // ESC
     /* 0x02 */ {'1', '!', false, false},
@@ -223,6 +223,7 @@ static bool extcode_state;                          ///< 扩展码状态
 /// 键盘中断处理函数
 void keymap_handler(int idt_index)
 {
+    uchar ext = 2;                                 ///< keymap 状态索引，默认没有 shift 键
     uchar scancode = in_byte(0x60);             ///< 0x60端口是用于接收键盘数据的输入端口
 
     /**
@@ -233,7 +234,6 @@ void keymap_handler(int idt_index)
     if (scancode == 0xe0)
     {
         /// 置扩展状态
-        printk("extension code\n");
         extcode_state = true;
         return;
     }
@@ -241,6 +241,8 @@ void keymap_handler(int idt_index)
     /// 是扩展码
     if (extcode_state)
     {
+        /// 改状态索引
+        ext = 3;
         /// 修改扫描码，添加 0xe0 前缀
         scancode |= 0xe000;
         /// 扩展状态无效
@@ -253,8 +255,13 @@ void keymap_handler(int idt_index)
     bool breakcode = ((scancode & 0x0080) != 0);
     if (breakcode)                                  ///< 处理断码
     {
+        /// 如果是则设置状态
+        keymap[makecode][ext] = false;
         return;
     }
+
+    /// 下面是通码，按键按下
+    keymap[makecode][ext] = true;
 
     /// 大写锁定，有的时候触发一次，再次按下后触发两次，不理解
     if (makecode == KEY_CAPSLOCK)
@@ -270,6 +277,14 @@ void keymap_handler(int idt_index)
 
     /// 获得按键 ASCII 码
     char ch = 0;                                    ///< 这里一次按键会打印两次 a，通码一次，断码一次
-    ch = keymap[makecode][shift];
+    if (ext == 3)                                   ///< 如果是扩展按键（如 Ctrl_right）
+    {
+        ch = keymap[makecode][1];
+    }
+    else
+        ch = keymap[makecode][shift];
+
+    if (ch == INV)                                  ///< 如果是INV，则不打印
+        return;
     printk("%c\n", ch);
 }
