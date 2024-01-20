@@ -117,6 +117,7 @@ typedef enum {
 static char keymap[][4] =
 {
     /// 扫描码未与 shift 组合____与 shift 组合____普通码（如左侧ctrl键）____扩展码（如右ctrl键）
+    /// 扫描码未与 shift 组合____与 shift 组合____（键按下为 true，否则 false）____扩展码（如右ctrl键）
     /* 0x00 */ {INV, INV, false, false},   // NULL
     /* 0x01 */ {0x1b, 0x1b, false, false}, // ESC
     /* 0x02 */ {'1', '!', false, false},
@@ -220,6 +221,9 @@ static char keymap[][4] =
 static bool capslock_state;                         ///< 大写锁定
 static bool extcode_state;                          ///< 扩展码状态
 
+/// SHIFT 键状态
+#define shift_state (keymap[KEY_SHIFT_L][2] || keymap[KEY_SHIFT_R][2])
+
 /// 键盘中断处理函数
 void keymap_handler(int idt_index)
 {
@@ -271,6 +275,10 @@ void keymap_handler(int idt_index)
 
     bool shift = false;                             ///< 大小写偏移
     if (capslock_state)
+    {
+        shift = !shift;
+    }
+    if (shift_state)                                ///< shift 键按下
     {
         shift = !shift;
     }
