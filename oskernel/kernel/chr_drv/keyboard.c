@@ -68,7 +68,7 @@ typedef enum {
     KEY_M,          ///< 50
     KEY_COMMA,
     KEY_POINT,
-    KEY_SLASH,
+    KEY_SLASH,      ///< 53
     KEY_SHIFT_R,
     KEY_STAR,
     KEY_ALT_L,
@@ -231,7 +231,8 @@ void keymap_handler(int idt_index)
     uchar scancode = in_byte(0x60);             ///< 0x60端口是用于接收键盘数据的输入端口
 
     /**
-     * 扩展码用于标识与标准码不同的键。比如，右侧的 Ctrl 键对应的扫描码为 0xE0 0x1D
+     * 扩展码用于标识与标准码不同的键。比如，右侧的 Ctrl 键对应的扫描码为 0xE0 0x1D，一个扩展码会有 4 个 byte
+     * 普通码就 2 个
      * 而左侧的 Ctrl 键对应的扫描码为 0x1D。通过扩展码可以区分这两个键。
      */
     /// 是扩展码字节
@@ -257,7 +258,7 @@ void keymap_handler(int idt_index)
 
     /// 是否是断码，按键抬起
     bool breakcode = ((scancode & 0x0080) != 0);
-    if (breakcode)                                  ///< 处理断码
+    if (breakcode)                                  ///< 处理断码，按键抬起，直接返回
     {
         /// 如果是则设置状态
         keymap[makecode][ext] = false;
@@ -285,7 +286,8 @@ void keymap_handler(int idt_index)
 
     /// 获得按键 ASCII 码
     char ch = 0;                                    ///< 这里一次按键会打印两次 a，通码一次，断码一次
-    if (ext == 3)                                   ///< 如果是扩展按键（如 Ctrl_right）
+    /// [/?] 这个键比较特殊，只有这个键扩展码和普通码一样，别的都有像 ctrl_l 和 ctrl_r 这样的区分
+    if (ext == 3 && (makecode != KEY_SLASH))        ///< 如果是扩展按键（如 Ctrl_right）
     {
         ch = keymap[makecode][1];
     }
