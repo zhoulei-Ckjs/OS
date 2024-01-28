@@ -256,6 +256,12 @@ void keymap_handler(int idt_index)
 
     ushort makecode = (scancode & 0x7f);            ///< 获得通码
 
+    /// 通码非法
+    if (makecode > KEY_PRINT_SCREEN)
+    {
+        return;
+    }
+
     /// 是否是断码，按键抬起
     bool breakcode = ((scancode & 0x0080) != 0);
     if (breakcode)                                  ///< 处理断码，按键抬起，直接返回
