@@ -13,6 +13,7 @@
  */
 
 #define INV 0         ///< 不可见字符
+#define CODE_PRINT_SCREEN_DOWN 0xB7
 
 typedef enum {
     KEY_NONE,       ///< 0
@@ -255,6 +256,10 @@ void keymap_handler(int idt_index)
     }
 
     ushort makecode = (scancode & 0x7f);            ///< 获得通码
+    if (makecode == CODE_PRINT_SCREEN_DOWN)         ///< print screen 在有些键盘发送的是 0xe0 0x37 表示按下
+    {
+        makecode = KEY_PRINT_SCREEN;
+    }
 
     /// 通码非法
     if (makecode > KEY_PRINT_SCREEN)
