@@ -231,6 +231,8 @@ void keymap_handler(int idt_index)
     uchar ext = 2;                                 ///< keymap 状态索引，默认没有 shift 键
     uchar scancode = in_byte(0x60);             ///< 0x60端口是用于接收键盘数据的输入端口
 
+    /// 由于在 head.asm 中设置的为自动 EOI ，故这里不用发送 end of interrupt
+
     /**
      * 扩展码用于标识与标准码不同的键。比如，右侧的 Ctrl 键对应的扫描码为 0xE0 0x1D，一个扩展码会有 4 个 byte
      * 普通码就 2 个
