@@ -11,4 +11,10 @@ void gdt_init();
  */
 void idt_init();
 
+/**
+ * @brief 发送 end of interrupt
+ * @param idt_index
+ */
+void send_eoi(int idt_index);
+
 #endif //HAINIU_TRAPS_H
