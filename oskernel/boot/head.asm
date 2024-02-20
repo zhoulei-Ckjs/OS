@@ -31,7 +31,7 @@ _start:
     out 0A1h , al
 
     ; 向主发送ICW4
-    mov al, 001h                ; 0000 00_1_1，0000 00_自动EOI_X86模式
+    mov al, 003h                ; 0000 00_1_1，0000 00_自动EOI_X86模式
     out 021h, al
 
     ; 向从发送ICW4

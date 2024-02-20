@@ -233,7 +233,7 @@ void keymap_handler(int idt_index)
     uchar scancode = in_byte(0x60);             ///< 0x60端口是用于接收键盘数据的输入端口
 
     /// 由于在 head.asm 中设置的为自动 EOI ，故这里不用发送 end of interrupt
-    send_eoi(idt_index);                ///< 手动EOI
+//    send_eoi(idt_index);                ///< 手动EOI
 
     /**
      * 扩展码用于标识与标准码不同的键。比如，右侧的 Ctrl 键对应的扫描码为 0xE0 0x1D，一个扩展码会有 4 个 byte
