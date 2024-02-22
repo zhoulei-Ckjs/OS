@@ -14,8 +14,8 @@ extern keymap_handler
 ;				eip
 ;				ss
 ;	低地址		esp
-global interrupt_handler
-interrupt_handler:
+global interrupt_handler_entry
+interrupt_handler_entry:
     push msg
     call printk
     add esp, 4
