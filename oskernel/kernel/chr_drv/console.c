@@ -1,5 +1,6 @@
 #include "../../include/asm/io.h"
 #include "../../include/linux/tty.h"
+#include "../../include/string.h"
 
 /**
  * 索引寄存器，一般用法：
