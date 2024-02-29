@@ -7,8 +7,8 @@
 #pragma pack(2)
 typedef struct xdt_ptr_t
 {
-    short   limit;
-    int     base;    // 这个base需要大端存储，默认是小端存储
+    short   limit;           ///< 描述符表大小，以 Byte 为单位
+    int     base;            ///< 描述符表 基地址
 } xdt_ptr_t;
 #pragma pack()
 

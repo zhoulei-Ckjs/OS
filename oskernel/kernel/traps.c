@@ -18,3 +18,9 @@ void send_eoi(int idt_index)
         out_byte(PIC_S_CTRL, PIC_EOI);
     }
 }
+
+void write_xdt_ptr(xdt_ptr_t* p, short limit, int base)
+{
+    p->limit = limit;
+    p->base = base;
+}
