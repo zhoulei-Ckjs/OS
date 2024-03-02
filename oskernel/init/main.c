@@ -11,7 +11,5 @@ void kernel_main(void)
 
     __asm__("sti;");        ///< 开中断
 
-    int i = 10 / 0;         ///< 除零异常
-
     while (true);
 }

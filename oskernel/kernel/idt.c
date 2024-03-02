@@ -11,6 +11,7 @@ xdt_ptr_t idt_ptr;                          ///< 中断向量表 控制信息的
 
 extern void interrupt_handler_entry();
 extern void keymap_handler_entry();         ///< 键盘中断
+extern void clock_handler_entry();          ///< 时钟中断
 
 /// 是在汇编中定义的
 extern int interrupt_handler_table[0x2f];
@@ -26,6 +27,12 @@ void idt_init()
         if (i <= 0x15)
         {
             handler = (int)interrupt_handler_table[i];
+        }
+
+        /// 时钟中断
+        if (0x20 == i)
+        {
+            handler = (int)clock_handler_entry;
         }
 
         /// 键盘中断
@@ -47,12 +54,6 @@ void idt_init()
 
     /// 让CPU知道中断向量表，每个中断描述符 8 字节，共定义了 256 个。
     write_xdt_ptr(&idt_ptr, INTERRUPT_TABLE_SIZE * 8, interrupt_table);
-
-    ///----------------------- 验证 IDT 表中存储的函数地址正确性 ----------
-    printk("%x\n", interrupt_handler_table[0]);
-
-    BOCHS_DEBUG_MAGIC
-    BOCHS_DEBUG_MAGIC
 
     asm volatile("lidt idt_ptr;");
 }
