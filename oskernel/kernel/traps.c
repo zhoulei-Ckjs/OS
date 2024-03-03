@@ -12,6 +12,8 @@ void send_eoi(int idt_index)
     {
         out_byte(PIC_M_CTRL, PIC_EOI);
     }
+    /// 如果 idt_index 在从 PIC 管理的 IRQ 0x28 到 IRQ 0x2F 范围内，需要分别向主 PIC 和从 PIC 发送 EOI 信号。
+    /// 这是因为从 PIC 中断也会触发主 PIC 中断。
     else if (idt_index >= 0x28 && idt_index < 0x30)
     {
         out_byte(PIC_M_CTRL, PIC_EOI);
