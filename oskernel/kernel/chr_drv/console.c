@@ -1,6 +1,7 @@
 #include "../../include/asm/io.h"
 #include "../../include/linux/tty.h"
 #include "../../include/string.h"
+#include "../../include/asm/system.h"
 
 /**
  * 索引寄存器，一般用法：
@@ -178,6 +179,7 @@ static void command_del()
 
 void console_write(char *buf, u32 count)
 {
+    CLI
     char ch;
     char *ptr = NULL;
     while (count--)
@@ -233,4 +235,5 @@ void console_write(char *buf, u32 count)
         }
     }
     set_cursor();                               //  将光标设定为当前 pos 所指向的位置
+    STI
 }

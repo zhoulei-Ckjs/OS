@@ -2,6 +2,7 @@
 #include "../include/linux/kernel.h"
 #include "../include/string.h"
 #include "../include/linux/traps.h"
+#include "../include/asm/system.h"
 
 extern void clock_init();
 
@@ -12,7 +13,7 @@ void kernel_main(void)
     idt_init();
     clock_init();
 
-    __asm__("sti;");        ///< 开中断
+    STI        ///< 开中断
 
     while (true);
 }
