@@ -4,9 +4,7 @@
 dw 0x55aa           ; 定义的第一个数，魔数，用于判断是否读盘错误
 
 [SECTION .data]
-;----------------
-; 构建gdt表用数据
-;----------------
+;----------------------------------------构建gdt表用数据---------------------------------------
 MEMORY_BASE equ 0                                               ; 内存开始的位置：基地址
 MEMORY_LIMIT equ ((1024 * 1024 * 1024 * 4) / (1024 * 4)) - 1    ; 段界限，20位寻址能力，内存是以4k为一单位划分的
 B8000_SEG_BASE equ 0xb8000                                      ; 显存开始位置
@@ -15,12 +13,26 @@ B8000_SEG_LIMIT equ 0x7fff                                      ; 显存长度
 CODE_SELECTOR equ (1 << 3)                                      ; 代码段选择子，左移3位是最后三位是属性
 DATA_SELECTOR equ (2 << 3)                                      ; 数据段选择子
 B8000_SELECTOR equ (3 << 3)                                     ; 显存段选择子
+;--------------------------------------------over--------------------------------------------
 
 
-;----------------
-; 内核用数据
-;----------------
+;------------------------------------------内核用数据------------------------------------------
 KERNEL_MAIN_ADDR equ 0x1200    ; kernel保存在这里，是由setup进行跳转的地址
+;--------------------------------------------over--------------------------------------------
+
+
+;-------------------------------------用于存储内存检测的数据-------------------------------------
+; 内存检测需要调用 BIOS 中断，进行多次检测（因为可能有多块连续的内存），每次检测我们给 BISO 传递 20 字节，让
+; BIOS 将本次检测结果写到这个内存中。
+ARDS_TIMES_BUFFER equ 0x1100    ; 用于记录检测了多少次内存，如检测了5次，则共有5块分离的内存
+ARDS_BUFFER equ 0x1102          ; 从这个地址开始，填写检测结果，检测 5 次，则从这个地址写 20 * 5 = 100 字节。
+ARDS_TIMES dw 0                 ; define word，定义一个字16位，用于内存检测次数计算，检测结果最终要写到 ARDS_TIMES_BUFFER 的地址。
+
+; 存储填充以后的offset，下次检测的结果接着写。
+; 也就是上面的写了 20 × 5 = 100 字节后，的结尾在哪里。我们将这个结尾存储到这个值中。
+CHECK_BUFFER_OFFSET dw 0
+;--------------------------------------------over--------------------------------------------
+
 
 ; gdt段，用于构建全局描述符表（global descriptor table）
 [SECTION .gdt]
@@ -76,6 +88,44 @@ _setup_start:
     mov     si, loading
     call    print
 
+; 内存检测
+memory_check:
+    xor ebx, ebx            ; ebx = 0
+    mov di, ARDS_BUFFER     ; es:di 指向一块内存   es因为前面已设置为0，这里不重复赋值
+.loop:
+    mov eax, 0xe820         ; ax = 0xe820
+        ; 将值 0xe820 存储在 eax 寄存器中，这通常用作功能码，指示 BIOS 或系统服务程序执行获取系统内存分布信息的功能。
+    mov ecx, 20
+        ; 将 ECX 寄存器的值设置为 20，这是传递给 BIOS 的缓冲区大小，指明了内存映射记录的大小。
+        ; 通常，这个大小为 20 字节（0x14 字节），每个内存映射条目的格式。
+    mov edx, 0x534D4150     ; edx = 0x534D4150
+        ; 将 EDX 寄存器的值设置为 'SMAP' 的 ASCII 码（0x534D4150）。
+        ; 这是一个签名，操作系统通过这个签名来验证 BIOS 返回的信息是否有效。
+        ; 这是一个魔术数，用来确认 BIOS 支持这项功能和正确地响应请求。
+    int 0x15
+        ; 执行中断 15H 调用。它传递了前面设置的参数（EAX=0xE820, ECX=20, EDX='SMAP'），请求 BIOS 返回系统的内存映射。
+        ; 这个中断调用会填充先前准备好的内存区域（通过 ES:DI 指向的缓冲区）来返回内存映射信息，
+        ; 同时更新 EAX 寄存器为 'SMAP'，以确认操作成功，
+        ; 并且将下一次调用所需的 continuation value 返回在 EBX 中，用于连续获取所有内存区域信息。
+
+    jc memory_check_error   ; 如果出错，打印错误信息
+
+    add di, cx              ; 下次填充的结果存到下个结构体
+
+    inc dword [ARDS_TIMES]  ; 检测次数 + 1
+
+    cmp ebx, 0              ; 在检测的时候，ebx会被bios修改为连续值用于下次检测，ebx不为0就要继续检测
+    jne .loop
+
+    mov ax, [ARDS_TIMES]            ; 保存内存检测次数
+    mov [ARDS_TIMES_BUFFER], ax
+
+    mov [CHECK_BUFFER_OFFSET], di   ; 保存offset
+
+.memory_check_success:
+    mov si, memory_check_success_msg
+    call print
+
 ; 进入保护模式
 enter_protected_mode:
     cli                         ; 关闭中断
@@ -91,8 +141,16 @@ enter_protected_mode:
     or  eax, 1
     mov cr0, eax
 
+    xchg bx, bx
     ; 用跳转来刷新缓存，启用保护模式，跳转后cs寄存器自动刷新了，所以在保护模式下就不用给cs赋值了
     jmp dword CODE_SELECTOR:protected_mode
+
+;16 BIT 编码，放这里
+memory_check_error:
+    mov     si, memory_check_error_msg
+    call    print
+
+    jmp $
 
 [BITS 32]
 protected_mode:
@@ -253,3 +311,7 @@ print:
 
 loading:
     db "[setup.asm] : Preparing to enter protect mode ...", 10, 13, 0     ; \n\r
+memory_check_error_msg:
+    db "memory check fail...", 10, 13, 0
+memory_check_success_msg:
+    db "memory check success...", 10, 13, 0
