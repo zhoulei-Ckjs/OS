@@ -12,10 +12,15 @@ typedef struct
     unsigned int  base_addr_high;   ///< 内存基地址的高32位
     unsigned int  length_low;       ///< 内存块长度的低32位
     unsigned int  length_high;      ///< 内存块长度的高32位
-    /// 内存类型1：通常表示系统检测到的主内存模块，可能是主板上默认的内存或主存储器。
-    /// 内存类型2：可能表示系统检测到的外部内存扩展模块，例如插槽中安装的扩展内存模块。
-    unsigned int  type;             ///< 描述内存块的类型
+    /**
+     * 描述内存块的类型
+     * - 1 表示一个内存区域是可用的，也就是这部分内存是健康的、未被占用，可以被操作系统或应用程序使用
+     * - 2 表示一个内存区域是保留的或不可用的，这可能是因为这部分内存已经被某些硬件或固件占用了
+     */
+    unsigned int  type;
 }check_memmory_item_t;
+
+#define ZONE_VALID 1        ///< ards 可用内存区域（Address Range Descriptor Structure）
 
 /**
  * @brief 内存信息
