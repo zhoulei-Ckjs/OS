@@ -32,6 +32,19 @@ typedef struct
 }check_memory_info_t;
 
 /**
+ * @brief 描述一块物理内存的结构
+ */
+typedef struct
+{
+    uint    addr_start;     ///< 可用内存起始地址 一般是1M
+    uint    addr_end;       ///< 可用内存结束地址
+    uint    valid_mem_size; ///< 可用内存大小
+    uint    pages_total;    ///< 机器物理内存共多少page
+    uint    pages_free;     ///< 机器物理内存还剩多少page
+    uint    pages_used;     ///< 机器物理内存用了多少page
+}physics_memory_info_t;
+
+/**
  * @brief 打印内存信息
  */
 void print_check_memory_info();
