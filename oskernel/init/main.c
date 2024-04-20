@@ -15,6 +15,7 @@ void kernel_main(void)
     clock_init();
 
     print_check_memory_info();
+    memory_init();
 
     STI        ///< 开中断
 

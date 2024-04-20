@@ -27,7 +27,7 @@ typedef struct
  */
 typedef struct
 {
-    unsigned short          times;
+    unsigned short          times;      ///< 有多少块内存块结构
     check_memmory_item_t*   data;
 }check_memory_info_t;
 
@@ -48,5 +48,10 @@ typedef struct
  * @brief 打印内存信息
  */
 void print_check_memory_info();
+
+/**
+ * @brief 内存初始化
+ */
+void memory_init();
 
 #endif //OS_MM_H
