@@ -16,6 +16,7 @@ void kernel_main(void)
 
     print_check_memory_info();
     memory_init();
+    memory_map_int();
 
     STI        ///< 开中断
 

@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#define PAGE_SIZE 4096              ///< 单个内存页的大小
+
 /**
  * @brief 内存块结构
  */
@@ -44,6 +46,14 @@ typedef struct
     uint    pages_used;     ///< 机器物理内存用了多少page
 }physics_memory_info_t;
 
+typedef struct
+{
+    uint            addr_base;          ///< 可用物理内存开始位置  3M
+    uint            pages_total;        ///< 共有多少page   机器物理内存共多少page - 0x30000（3M）
+    uint            bitmap_item_used;   ///< 如果1B映射一个page，用了多少个page
+    uchar*          map;
+}physics_memory_map_t;
+
 /**
  * @brief 打印内存信息
  */
@@ -53,5 +63,10 @@ void print_check_memory_info();
  * @brief 内存初始化
  */
 void memory_init();
+
+/**
+ * @brief 初始化内存map
+ */
+void memory_map_int();
 
 #endif //OS_MM_H
