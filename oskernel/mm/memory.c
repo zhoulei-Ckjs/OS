@@ -95,3 +95,32 @@ void memory_map_int()
            g_physics_memory_map.addr_base, g_physics_memory_map.addr_base / 1024 / 1024,
            g_physics_memory_map.bitmap_item_used);
 }
+
+void* get_free_page()
+{
+    bool find = false;
+
+    int i = g_physics_memory_map.bitmap_item_used;
+    for (; i < g_physics_memory.pages_total; ++i)
+    {
+        if (0 == g_physics_memory_map.map[i])
+        {
+            find = true;
+            break;
+        }
+    }
+
+    if (!find)
+    {
+        printk("memory used up!");
+        return NULL;
+    }
+
+    g_physics_memory_map.map[i] = 1;
+    g_physics_memory_map.bitmap_item_used++;
+
+    void* ret = (void*)(g_physics_memory_map.addr_base + (i << 12));
+
+    printk("[%s]return: 0x%X, used: %d/%d pages\n", __FUNCTION__, ret, g_physics_memory_map.bitmap_item_used, g_physics_memory_map.pages_total);
+    return ret;
+}

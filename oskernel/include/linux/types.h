@@ -1,8 +1,8 @@
 #ifndef HAINIU_TYPES_H
 #define HAINIU_TYPES_H
 
-#define NULL ((void *)0)                // 空指针
-#define EOS '\0'                        // 字符串结尾
+#define NULL ((void *)0)                ///< 空指针
+#define EOS '\0'                        ///< 字符串结尾
 
 #define bool _Bool                      ///< _Bool 是 C 语言中的布尔数据类型
 

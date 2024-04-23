@@ -23,6 +23,7 @@ typedef struct
 }check_memmory_item_t;
 
 #define ZONE_VALID 1        ///< ards 可用内存区域（Address Range Descriptor Structure）
+#define ZONE_RESERVED 2     ///< ards 不可用区域
 
 /**
  * @brief 内存信息

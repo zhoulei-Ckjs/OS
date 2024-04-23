@@ -18,6 +18,12 @@ void kernel_main(void)
     memory_init();
     memory_map_int();
 
+    for (int i = 0; i < 3; ++i)
+    {
+        void* p = get_free_page();
+        printk("find page %p\n", p);
+    }
+
     STI        ///< 开中断
 
     while (true);
