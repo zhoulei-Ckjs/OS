@@ -124,3 +124,19 @@ void* get_free_page()
     printk("[%s]return: 0x%X, used: %d/%d pages\n", __FUNCTION__, ret, g_physics_memory_map.bitmap_item_used, g_physics_memory_map.pages_total);
     return ret;
 }
+
+void free_page(void* p)
+{
+    if (p < g_physics_memory.addr_start || p > g_physics_memory.addr_end)
+    {
+        printk("invalid address!");
+        return;
+    }
+
+    int index = (int)(p - g_physics_memory_map.addr_base) >> 12;
+
+    g_physics_memory_map.map[index] = 0;
+    g_physics_memory_map.bitmap_item_used--;
+
+    printk("[%s]return: 0x%X, used: %d/%d pages\n", __FUNCTION__, p, g_physics_memory_map.bitmap_item_used, g_physics_memory_map.pages_total);
+}

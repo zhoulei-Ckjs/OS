@@ -22,6 +22,7 @@ void kernel_main(void)
     {
         void* p = get_free_page();
         printk("find page %p\n", p);
+        free_page(p);
     }
 
     STI        ///< 开中断
