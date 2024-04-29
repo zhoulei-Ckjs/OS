@@ -22,8 +22,8 @@ typedef struct
     unsigned int  type;
 }check_memmory_item_t;
 
-#define ZONE_VALID 1        ///< ards 可用内存区域（Address Range Descriptor Structure）
-#define ZONE_RESERVED 2     ///< ards 不可用区域
+#define ZONE_VALID 1        ///< AddressRangeMemory 可用内存区域（Address Range Descriptor Structure）
+#define ZONE_RESERVED 2     ///< AddressRangeReserved 不可用区域，内存使用中或被操作系统保留，操作系统不可以使用这段内存。
 
 /**
  * @brief 内存信息
