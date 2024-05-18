@@ -70,4 +70,9 @@ void memory_init();
  */
 void memory_map_int();
 
+/**
+ * @brief 初始化页表
+ */
+void virtual_memory_init();
+
 #endif //OS_MM_H

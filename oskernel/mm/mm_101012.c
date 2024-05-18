@@ -1,4 +1,6 @@
 #include "../include/linux/mm.h"
+#include "../include/asm/system.h"
+#include "../include/linux/kernel.h"
 
 void virtual_memory_init()
 {
@@ -24,8 +26,8 @@ void virtual_memory_init()
                 int* item = &ptt_arr[j];
 
                 int virtual_addr = j * 0x1000;      ///< 地址为 4K 的整数
-                /// 00000000000000000000000000000_普通用户也可以访问_可读写_物理页无效（物理页不存在，访问会发生缺页中断）
-                *item = 0b00000000000000000000000000000110 | virtual_addr;
+                /// 00000000000000000000000000000_普通用户也可以访问_可读写_物理页有效（物理页不存在，访问会发生缺页中断）
+                *item = 0b00000000000000000000000000000111 | virtual_addr;
             }
         }
         else
@@ -35,11 +37,18 @@ void virtual_memory_init()
                 int* item = &ptt_arr[j];
 
                 int virtual_addr = j * 0x1000;
-                virtual_addr = virtual_addr + i * 0x400 * 0x1000;
+                virtual_addr = virtual_addr + i * 0x400 * 0x1000;   ///< 0x400 * 0x1000 是跳过 i==0 时分配的地址。
 
-                /// 00000000000000000000000000000_普通用户也可以访问_可读写_物理页无效
-                *item = 0b00000000000000000000000000000110 | virtual_addr;
+                /// 00000000000000000000000000000_普通用户也可以访问_可读写_物理页有效
+                *item = 0b00000000000000000000000000000111 | virtual_addr;
             }
         }
     }
+
+    BOCHS_DEBUG_MAGIC
+
+    set_cr3((uint)pdt);
+    enable_page();
+
+    BOCHS_DEBUG_MAGIC
 }

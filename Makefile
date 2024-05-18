@@ -42,7 +42,8 @@ ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/kernel/asm/clock_handler.o \
 	${BUILD}/kernel/chr_drv/clock.o \
 	${BUILD}/mm/memory.o \
-	${BUILD}/mm/mm_101012.o
+	${BUILD}/mm/mm_101012.o \
+	${BUILD}/kernel/kernel.o
 	ld -m elf_i386 $^ -o $@ -Ttext 0x1200
 
 ${BUILD}/mm/%.o: oskernel/mm/%.c
