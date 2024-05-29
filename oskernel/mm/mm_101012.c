@@ -2,7 +2,7 @@
 #include "../include/asm/system.h"
 #include "../include/linux/kernel.h"
 
-void virtual_memory_init()
+void* virtual_memory_init()
 {
     int* pdt = (int*)get_free_page();       ///< PDT表
     /// 清零
@@ -21,6 +21,11 @@ void virtual_memory_init()
         if (0 == i)
         {
             /// 第一块映射区，给内核用，每个结构体 4B，4K 能够存储 0X400 个结构体
+            /**
+             * 这里可以映射 4M 地址空间，一个满的 pdt 表有 4096B / 4B = 1024 个 ptt 表
+             * ptt 表中没一项 pte 都代表了 4096B
+             * 所以这里总共映射为：1024 × 4096B = 4M
+             */
             for (int j = 0; j < 0x400; ++j)
             {
                 int* item = &ptt_arr[j];
@@ -32,16 +37,16 @@ void virtual_memory_init()
         }
         else
         {
-            for (int j = 0; j < 0x400; ++j)
-            {
-                int* item = &ptt_arr[j];
-
-                int virtual_addr = j * 0x1000;
-                virtual_addr = virtual_addr + i * 0x400 * 0x1000;   ///< 0x400 * 0x1000 是跳过 i==0 时分配的地址。
-
-                /// 00000000000000000000000000000_普通用户也可以访问_可读写_物理页有效
-                *item = 0b00000000000000000000000000000111 | virtual_addr;
-            }
+//            for (int j = 0; j < 0x400; ++j)
+//            {
+//                int* item = &ptt_arr[j];
+//
+//                int virtual_addr = j * 0x1000;
+//                virtual_addr = virtual_addr + i * 0x400 * 0x1000;   ///< 0x400 * 0x1000 是跳过 i==0 时分配的地址。
+//
+//                /// 00000000000000000000000000000_普通用户也可以访问_可读写_物理页有效
+//                *item = 0b00000000000000000000000000000111 | virtual_addr;
+//            }
         }
     }
 
@@ -51,4 +56,5 @@ void virtual_memory_init()
     enable_page();
 
     BOCHS_DEBUG_MAGIC
+    return pdt;
 }

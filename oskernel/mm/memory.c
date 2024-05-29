@@ -101,6 +101,7 @@ void* get_free_page()
     bool find = false;
 
     int i = g_physics_memory_map.bitmap_item_used;
+    /// TODO 这里感觉有 bug，从用的 bitmap 个数开始查找，那如果 bitmap 个数之前的页被释放了，那样岂不是分配不到这个页了！
     for (; i < g_physics_memory.pages_total; ++i)
     {
         if (0 == g_physics_memory_map.map[i])

@@ -72,7 +72,21 @@ void memory_map_int();
 
 /**
  * @brief 初始化页表
+ * @return 页表地址
  */
-void virtual_memory_init();
+void* virtual_memory_init();
+
+/**
+ * @brief 从物理页表中找到一块没有用到的页
+ * @return 找到的物理页表地址
+ *      - NULL  页表用尽了
+ */
+void* get_free_page();
+
+/**
+ * @brief 释放物理页
+ * @param p 待释放的物理页地址
+ */
+void free_page(void* p);
 
 #endif //OS_MM_H
