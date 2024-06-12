@@ -147,7 +147,6 @@ enter_protected_mode:
     or  eax, 1
     mov cr0, eax
 
-    xchg bx, bx
     ; 用跳转来刷新缓存，启用保护模式，跳转后cs寄存器自动刷新了，所以在保护模式下就不用给cs赋值了
     jmp dword CODE_SELECTOR:protected_mode
 
