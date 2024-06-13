@@ -20,7 +20,7 @@ void* virtual_memory_init()
 
         if (0 == i)
         {
-            /// 第一块映射区，给内核用，每个结构体 4B，4K 能够存储 0X400 个结构体
+            /// 第一块映射区，给内核用，每个结构体 4B，4K 能够存储 0X400 即 1024 个结构体
             /**
              * 这里可以映射 4M 地址空间，一个满的 pdt 表有 4096B / 4B = 1024 个 ptt 表
              * ptt 表中每一项 pte 都代表了 4096B
@@ -30,9 +30,15 @@ void* virtual_memory_init()
             {
                 int* item = &ptt_arr[j];
 
-                int virtual_addr = j * 0x1000;      ///< 地址为 4K 的整数
-                /// 00000000000000000000000000000_普通用户也可以访问_可读写_物理页有效（物理页不存在，访问会发生缺页中断）
-                *item = 0b00000000000000000000000000000111 | virtual_addr;
+                int actual_addr = j * 0x1000;      ///< 地址为 4K 的整数
+                /// TODO 下面这两种写法为什么会失败？
+//                int actual_addr = j * 0x1000 + 0x200000;      ///< 地址为 4K 的整数
+//                int actual_addr = (int) get_free_page();
+                /**
+                 * ptt 表赋值初始化，其中每个 pte 代表一个物理页的实际地址，即 actual_addr 为给进程分配的实际物理地址
+                 * 00000000000000000000000000000_普通用户也可以访问_可读写_物理页有效（物理页不存在，访问会发生缺页中断）
+                 */
+                *item = 0b00000000000000000000000000000111 | actual_addr;
             }
         }
         else
@@ -51,10 +57,12 @@ void* virtual_memory_init()
     }
 
     BOCHS_DEBUG_MAGIC
+    BOCHS_DEBUG_MAGIC
 
     set_cr3((uint)pdt);
     enable_page();
 
+    BOCHS_DEBUG_MAGIC
     BOCHS_DEBUG_MAGIC
     return pdt;
 }
