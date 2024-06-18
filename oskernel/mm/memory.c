@@ -1,8 +1,9 @@
 #include "../include/linux/mm.h"
+#include "../include/string.h"
 
 #define ARDS_ADDR                   0x1100
 
-/// 把1M以下内存称为无效内存
+/// 把1M以下内存称为无效内存，1M 以下是 BIOS 内存
 #define VALID_MEMORY_FROM           0x100000
 
 /**
@@ -62,7 +63,7 @@ void memory_init()
 
 void memory_map_int()
 {
-    /// 验证，只有一块内存，从0x1000000开始。
+    /// 验证，只有一块内存，从 0x100000 开始，0x100000 以下是 BIOS 地址。
     if (VALID_MEMORY_FROM != g_physics_memory.addr_start)
     {
         printk("[%s:%d] no valid physics memory\n", __FILE__, __LINE__);
