@@ -67,12 +67,10 @@ void* virtual_memory_init()
     }
 
     BOCHS_DEBUG_MAGIC
-    BOCHS_DEBUG_MAGIC
 
     set_cr3((uint)pdt);
     enable_page();
 
-    BOCHS_DEBUG_MAGIC
     BOCHS_DEBUG_MAGIC
     return pdt;
 }

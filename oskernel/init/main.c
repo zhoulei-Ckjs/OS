@@ -1,10 +1,9 @@
 #include "../include/linux/tty.h"
-//#include "../include/linux/kernel.h"
-//#include "../include/string.h"
 #include "../include/linux/traps.h"
 #include "../include/asm/system.h"
 #include "../include/linux/mm.h"
 #include "../include/linux/task.h"
+#include "../include/linux/sched.h"
 
 extern void clock_init();
 
@@ -19,7 +18,8 @@ void kernel_main(void)
     memory_init();
     memory_map_int();
 
-    task_init();
+    task_init();                ///< 进程初始化，虚拟页表
+    sched();
 
     STI        ///< 开中断
 
