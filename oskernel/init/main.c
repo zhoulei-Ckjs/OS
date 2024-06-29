@@ -20,6 +20,7 @@ void kernel_main(void)
 
     task_init();                ///< 进程初始化，虚拟页表
     sched();
+    kmalloc(1);            ///< 测试分配虚拟内存
 
     STI        ///< 开中断
 

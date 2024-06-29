@@ -45,7 +45,8 @@ ${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
 	${BUILD}/mm/mm_101012.o \
 	${BUILD}/kernel/kernel.o \
 	${BUILD}/kernel/task.o \
-	${BUILD}/kernel/sched.o
+	${BUILD}/kernel/sched.o \
+	${BUILD}/mm/malloc.o
 	ld -m elf_i386 $^ -o $@ -Ttext 0x1200
 
 ${BUILD}/mm/%.o: oskernel/mm/%.c

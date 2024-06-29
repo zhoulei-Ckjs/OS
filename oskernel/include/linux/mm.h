@@ -89,4 +89,12 @@ void* get_free_page();
  */
 void free_page(void* p);
 
+/**
+ * @brief 分配、释放虚拟内存
+ * @param size 分配空间的大小
+ * @return 分配的空间指针
+ * @retval NULL 分配失败
+ */
+void* kmalloc(size_t size);
+
 #endif //OS_MM_H
