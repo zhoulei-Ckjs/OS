@@ -26,7 +26,7 @@ ${BUILD}/system.bin: ${BUILD}/kernel.bin
 	objcopy -O binary ${BUILD}/kernel.bin ${BUILD}/system.bin
 	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
-${BUILD}/kernel.bin: ${BUILD}/boot/head.o \
+${BUILD}/kernel.bin: ${BUILD}/kernel/asm/head.o \
 	${BUILD}/init/main.o \
 	${BUILD}/kernel/chr_drv/console.o \
 	${BUILD}/kernel/asm/io.o \
@@ -72,9 +72,6 @@ ${BUILD}/kernel/asm/%.o: oskernel/kernel/asm/%.asm
 ${BUILD}/init/main.o: oskernel/init/main.c
 	$(shell mkdir -p ${BUILD}/init)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
-
-${BUILD}/boot/head.o: oskernel/boot/head.asm
-	nasm -f elf32 -g $< -o $@
 
 ${BUILD}/boot/%.o: oskernel/boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot)
