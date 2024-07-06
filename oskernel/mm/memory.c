@@ -1,5 +1,6 @@
 #include "../include/linux/mm.h"
 #include "../include/string.h"
+#include "../include/linux/kernel.h"
 
 #define ARDS_ADDR                   0x1100
 

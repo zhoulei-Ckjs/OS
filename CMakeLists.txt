@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.23)
 project(system)
 
+# 设置裸机环境编译
+set(CMAKE_C_COMPILER /usr/bin/gcc)
+set(CMAKE_CXX_COMPILER /usr/bin/g++)
+set(CMAKE_LINKER /usr/bin/ld)
+
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/init/ SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/ SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/chr_drv/ SRC)
@@ -19,4 +24,7 @@ set_source_files_properties(${SRC} PROPERTIES COMPILE_OPTIONS
 )
 
 add_executable(${PROJECT_NAME} ${SRC} ${ASM_SOURCES})
+
+# 设置目标的链接选项
+target_link_options(${PROJECT_NAME} PRIVATE -Wl,-melf_i386,-Ttext,0x1200)
 
