@@ -5,28 +5,29 @@
 /**
  * @brief 桶链表结构，16字节
  */
-typedef struct bucket_desc
+struct bucket_desc
 {
     void*                   page;          ///< 管理的物理页
     struct bucket_desc*     next;          ///< 链表，下一个bucket地址
     void*                   freeptr;       ///< 下一个可供分配的
     unsigned short		    refcnt;        ///< 引用计数，释放物理页时要用
     unsigned short		    bucket_size;   ///< 每个桶的大小
-} bucket_desc_t;
+};
 
 /**
  * @brief 桶链表
  */
-typedef struct _bucket_dir
+struct _bucket_dir
 {
     int			            size;          ///< 桶大小
-    bucket_desc_t           *chain;        ///< 链表
-} bucket_dir_t;
+    struct bucket_desc*     chain;        ///< 链表
+};
 
 /**
  * @brief 不同大小的桶
  */
-bucket_dir_t bucket_dir[] = {
+struct _bucket_dir bucket_dir[] =
+{
     /// 参考嵌入式指针，一块空间在没有被分配时，当前链表指使用。
     /// 而链表结构为 bucket_desc_t， 所以最小桶大小 >= 16，只适用于 32 位系统
     /// 64 位系统由于指针变大，而造成 16 字节放不下嵌入式指针
@@ -44,21 +45,17 @@ bucket_dir_t bucket_dir[] = {
 
 void* kmalloc(size_t len)
 {
-    void*           ret     = NULL;
-    int             size    = 0;                            ///< 辅助统计
-    bucket_dir_t    bucket_dir_item;                        ///< 找到桶页的头
+    struct _bucket_dir*     bdir    = NULL;
+    void*                   ret     = NULL;
+    int                     size    = 0;                    ///< 辅助统计
 
     /// 找到存储桶
-    size = sizeof(bucket_dir) / sizeof(bucket_dir_t);       ///< 桶目录页数
-    for (int i = 0; i < size; ++i)
-    {
-        bucket_dir_item = bucket_dir[i];
-        if (bucket_dir_item.size >= len)    ///< 找到桶
+    for (bdir = bucket_dir; bdir->size; bdir++)
+        if (bdir->size >= len)
             break;
-    }
 
     /// 如果没找到桶
-    if (0 == bucket_dir_item.chain)
+    if (0 == bdir->size)
     {
         printk("no proper bucket: %d\n", len);
         return NULL;

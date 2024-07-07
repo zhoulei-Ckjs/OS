@@ -4,7 +4,6 @@ project(system)
 # 设置裸机环境编译
 set(CMAKE_C_COMPILER /usr/bin/gcc)
 set(CMAKE_CXX_COMPILER /usr/bin/g++)
-set(CMAKE_LINKER /usr/bin/ld)
 
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/init/ SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/ SRC)
@@ -23,8 +22,11 @@ set_source_files_properties(${SRC} PROPERTIES COMPILE_OPTIONS
         "-m32;-masm=intel;-fno-builtin;-nostdinc;-fno-pic;-fno-pie;-nostdlib;-fno-stack-protector"
 )
 
+# 强制设置链接器为ld，而不是gcc
+set(CMAKE_C_LINK_EXECUTABLE "/usr/bin/ld <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 add_executable(${PROJECT_NAME} ${SRC} ${ASM_SOURCES})
 
 # 设置目标的链接选项
-target_link_options(${PROJECT_NAME} PRIVATE -Wl,-melf_i386,-Ttext,0x1200)
+target_link_options(${PROJECT_NAME} PRIVATE -m elf_i386 -Ttext 0x1200)
 
