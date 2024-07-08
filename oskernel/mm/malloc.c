@@ -3,14 +3,18 @@
 #include "../include/linux/mm.h"
 
 /**
- * @brief 桶链表结构，16字节
+ * @brief 桶结构体描述符，16字节
+ *
+ * 每个桶结构体描述符管理一个物理页（4096KB）;
+ * 其中 bucket_size 为当前桶的大小，如 16K，则一共可以分配 4096/16 = 256 次;
+ * 其中 refcnt 统计了本页有多少个小块内存被分配出去了，只有当 refcnt == 0 时，我们才能将这个桶结构体所管理的物理页释放。
  */
 struct bucket_desc
 {
     void*                   page;          ///< 管理的物理页
     struct bucket_desc*     next;          ///< 链表，下一个bucket地址
     void*                   freeptr;       ///< 下一个可供分配的
-    unsigned short		    refcnt;        ///< 引用计数，释放物理页时要用
+    unsigned short		    refcnt;        ///< 引用计数，释放物理页时要用，只有当 refcnt == 0 时才能释放所管理的物理页
     unsigned short		    bucket_size;   ///< 每个桶的大小
 };
 
@@ -20,7 +24,7 @@ struct bucket_desc
 struct _bucket_dir
 {
     int			            size;          ///< 桶大小
-    struct bucket_desc*     chain;        ///< 链表
+    struct bucket_desc*     chain;         ///< 链表
 };
 
 /**
@@ -45,21 +49,32 @@ struct _bucket_dir bucket_dir[] =
 
 void* kmalloc(size_t len)
 {
-    struct _bucket_dir*     bdir    = NULL;
+    struct _bucket_dir*     bdir    = NULL;                 ///< 桶页
+    struct bucket_desc*     bdesc   = NULL;
     void*                   ret     = NULL;
     int                     size    = 0;                    ///< 辅助统计
 
-    /// 找到存储桶
+    /// 找到存储桶页
     for (bdir = bucket_dir; bdir->size; bdir++)
         if (bdir->size >= len)
             break;
-
-    /// 如果没找到桶
-    if (0 == bdir->size)
+    /// 找到了结尾符，说明要申请的空间太大了
+    if (!bdir->size)
     {
-        printk("no proper bucket: %d\n", len);
+        printk("malloc called with impossibly large argument (%d)\n", len);
         return NULL;
     }
 
+    /// 找一块空闲空间来分配
+    for (bdesc = bdir->chain; bdesc; bdesc = bdesc->next)
+        if (bdesc->freeptr)
+            break;
+
+    /// 如果没找到空间
+    if (!bdesc)
+    {
+        printk("no space left, need to allocate!\n", len);
+        return NULL;
+    }
     return ret;
 }

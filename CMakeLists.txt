@@ -13,9 +13,9 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/mm/ SRC)
 
 # .asm 编译
 file(GLOB ASM_SOURCES "${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/asm/*.asm")
-message("${ASM_SOURCES}")
-enable_language(ASM_NASM)
+# 这个配置必须在 enable_language(ASM_NASM) 之前
 set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf32")
+enable_language(ASM_NASM)
 
 # .c 源文件编译选项
 set_source_files_properties(${SRC} PROPERTIES COMPILE_OPTIONS
