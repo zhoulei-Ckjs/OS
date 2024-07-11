@@ -47,6 +47,35 @@ struct _bucket_dir bucket_dir[] =
     {0,    (struct bucket_desc *) 0}        ///< 结尾符
 };
 
+/// 空闲桶链表
+struct bucket_desc *free_bucket_desc = (struct bucket_desc *) 0;
+
+/**
+ * @brief 初始化桶描述符
+ *
+ * 我们专门申请一页内存来存储桶描述符，然后用这些桶描述符来管理内存
+ */
+static void init_bucket_desc()
+{
+    struct bucket_desc *bdesc, *first;
+
+    /// TODO get_free_page 不能访问内存了
+    first = bdesc = (struct bucket_desc *) get_free_page();
+    if (!bdesc)
+    {
+        printk("[Error]: get_free_page return null\n");
+        return;
+    }
+    /// 将桶链表链接起来
+    for (int i = PAGE_SIZE/sizeof(struct bucket_desc); i > 1; i--)
+    {
+        bdesc->next = bdesc+1;
+        bdesc++;
+    }
+    bdesc->next = free_bucket_desc;
+    free_bucket_desc = first;
+}
+
 void* kmalloc(size_t len)
 {
     struct _bucket_dir*     bdir    = NULL;                 ///< 桶页
@@ -73,6 +102,9 @@ void* kmalloc(size_t len)
     /// 如果没找到空间
     if (!bdesc)
     {
+        if (!free_bucket_desc)
+            init_bucket_desc();     ///< 初始化桶描述符表
+
         printk("no space left, need to allocate!\n", len);
         return NULL;
     }

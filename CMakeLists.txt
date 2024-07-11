@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
-project(system)
+project(kernel)
 
 # 设置裸机环境编译
 set(CMAKE_C_COMPILER /usr/bin/gcc)
@@ -30,3 +30,8 @@ add_executable(${PROJECT_NAME} ${SRC} ${ASM_SOURCES})
 # 设置目标的链接选项
 target_link_options(${PROJECT_NAME} PRIVATE -m elf_i386 -Ttext 0x1200)
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        # 拷贝机器码
+        COMMAND objcopy -O binary kernel system
+        COMMENT "拷贝机器码"
+)
