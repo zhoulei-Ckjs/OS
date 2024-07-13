@@ -80,7 +80,7 @@ void memory_map_int()
     /// 清零
     memset(g_physics_memory_map.map, 0, g_physics_memory_map.pages_total);
 
-    /// 1B映射一个page，共需要这么多page
+    /// 1B映射一个page，共需要这么多page，计算需要多少页来存储物理页表
     g_physics_memory_map.bitmap_item_used = g_physics_memory_map.pages_total / PAGE_SIZE;
     if (0 != g_physics_memory_map.pages_total % PAGE_SIZE)
     {

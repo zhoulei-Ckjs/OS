@@ -33,5 +33,6 @@ target_link_options(${PROJECT_NAME} PRIVATE -m elf_i386 -Ttext 0x1200)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         # 拷贝机器码
         COMMAND objcopy -O binary kernel system
+        COMMAND nm kernel | sort > map
         COMMENT "拷贝机器码"
 )
