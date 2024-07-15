@@ -36,3 +36,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND nm kernel | sort > map
         COMMENT "拷贝机器码"
 )
+
+# 编译 boot.o
+add_custom_target(boot.o ALL
+        COMMAND nasm ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/boot.asm -o boot.o
+        DEPENDS ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/boot.asm
+        COMMENT "Building boot.o from boot.asm"
+)
