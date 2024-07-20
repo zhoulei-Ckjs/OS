@@ -43,3 +43,9 @@ add_custom_target(boot.o ALL
         DEPENDS ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/boot.asm
         COMMENT "Building boot.o from boot.asm"
 )
+# 编译 setup.o
+add_custom_target(setup.o ALL
+        COMMAND nasm ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/setup.asm -o setup.o
+        DEPENDS ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/setup.asm
+        COMMENT "Building setup.o from setup.asm"
+)
