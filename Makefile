@@ -8,7 +8,8 @@ CFLAGS+= -fno-pic		# 不需要位置无关的代码  position independent code
 CFLAGS+= -fno-pie		# 不需要位置无关的可执行程序 position independent executable
 CFLAGS+= -nostdlib		# 不需要标准库
 CFLAGS+= -fno-stack-protector	# 不需要栈保护
-CFLAGS:=$(strip ${CFLAGS})
+CFLAGS:=$(strip ${CFLAGS})		# strip 命令在 Makefile 中用于去除变量值中的多余空格。它会移除变量值中的前导和尾随空格，
+								# 以及多余的内部空格，使变量值更加紧凑和整洁。
 
 DEBUG:= -g
 

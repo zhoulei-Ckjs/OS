@@ -59,7 +59,8 @@ static void init_bucket_desc()
 {
     struct bucket_desc *bdesc, *first;
 
-    /// TODO get_free_page 虽然可以访问内存了，但是 这块内存 不在进程内存映射范围内，会造成缺页中断
+    /// TODO get_free_page 虽然可以访问内存了，但是 get_free_page返回的这块内存 不在进程内存映射范围内，会造成缺页中断
+    /// TODO bug 暂时绕过缺页中断，在 mm_101012.c 中不用 get_free_page 进行映射
     first = bdesc = (struct bucket_desc *) get_free_page();
     if (!bdesc)
     {
