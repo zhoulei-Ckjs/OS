@@ -7,6 +7,9 @@
 /// 把1M以下内存称为无效内存，1M 以下是 BIOS 内存
 #define VALID_MEMORY_FROM           0x100000
 
+/// 物理页表起始地址
+#define PHYSICAL_MEMORY_ADDR        0x10000
+
 /**
  * @brief 可用物理内存
  */
@@ -72,7 +75,7 @@ void memory_map_int()
     }
 
     g_physics_memory_map.addr_base = (uint)VALID_MEMORY_FROM;
-    g_physics_memory_map.map = (uchar*)VALID_MEMORY_FROM;
+    g_physics_memory_map.map = (uchar*)PHYSICAL_MEMORY_ADDR;
 
     /// 共有这么多物理页可用
     g_physics_memory_map.pages_total = g_physics_memory.pages_total;
@@ -93,9 +96,10 @@ void memory_map_int()
         g_physics_memory_map.map[i] = 1;
     }
     
-    printk("physical memory map starts here: 0x%X(%dM), used: %d pages\n",
-           g_physics_memory_map.addr_base, g_physics_memory_map.addr_base / 1024 / 1024,
-           g_physics_memory_map.bitmap_item_used);
+    printk("physical memory map starts here: 0x%X, used: %d pages\n",
+           g_physics_memory_map.map, g_physics_memory_map.bitmap_item_used);
+    printk("we start to allocate physical memory from : 0x%X(%dM)\n",
+           g_physics_memory_map.addr_base, g_physics_memory_map.addr_base / 1024 / 1024);
 }
 
 void* get_free_page()

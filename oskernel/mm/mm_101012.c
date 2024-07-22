@@ -30,7 +30,9 @@ void* virtual_memory_init()
             ///
             /// 一个 pde 有 4096B，那么 1M 空间需要 pde 数量：
             /// \f 1024 × 1024 / 4096 = 256 = 0x100 \f
-            for (int j = 0; j < 0x102; ++j)
+            ///
+            /// 我们的物理页表 map 管理放在了物理内存的 0x10000-0x11FFF的位置
+            for (int j = 0; j < 0x100; ++j)
             {
                 int* item = &ptt_arr[j];
 
@@ -44,10 +46,8 @@ void* virtual_memory_init()
             /**
              * 我们映射页表要映射完全，一个 pdt 表有 pde（1 个 pde 4B）的个数为：
              * \f 4096B / 4B = 1024 = 0x400 \f
-             *
-             * 我们的页表 map 管理放在了物理内存的 0x100000-0x102000的位置
              */
-            for (int j = 0x102; j < 0x400; ++j)
+            for (int j = 0x100; j < 0x400; ++j)
             {
                 int* item = &ptt_arr[j];
 
