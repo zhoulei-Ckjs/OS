@@ -19,7 +19,7 @@ enable_language(ASM_NASM)
 
 # .c 源文件编译选项
 set_source_files_properties(${SRC} PROPERTIES COMPILE_OPTIONS
-        "-m32;-masm=intel;-fno-builtin;-nostdinc;-fno-pic;-fno-pie;-nostdlib;-fno-stack-protector"
+    "-m32;-masm=intel;-fno-builtin;-nostdinc;-fno-pic;-fno-pie;-nostdlib;-fno-stack-protector"
 )
 
 # 强制设置链接器为ld，而不是gcc
@@ -31,21 +31,23 @@ add_executable(${PROJECT_NAME} ${SRC} ${ASM_SOURCES})
 target_link_options(${PROJECT_NAME} PRIVATE -m elf_i386 -Ttext 0x1200)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        # 拷贝机器码
-        COMMAND objcopy -O binary kernel system
-        COMMAND nm kernel | sort > map
-        COMMENT "拷贝机器码"
+    # 拷贝机器码
+    COMMAND objcopy -O binary kernel system
+    COMMAND nm kernel | sort > map
+    COMMENT "拷贝机器码"
 )
 
-# 编译 boot.o
-add_custom_target(boot.o ALL
-        COMMAND nasm ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/boot.asm -o boot.o
-        DEPENDS ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/boot.asm
-        COMMENT "Building boot.o from boot.asm"
-)
-# 编译 setup.o
-add_custom_target(setup.o ALL
-        COMMAND nasm ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/setup.asm -o setup.o
-        DEPENDS ${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/setup.asm
-        COMMENT "Building setup.o from setup.asm"
-)
+# 定义要处理的ASM文件和生成的目标文件
+file(GLOB ASM_FILES "${CMAKE_CURRENT_LIST_DIR}/oskernel/boot/*.asm")
+
+foreach(ASM_FILE ${ASM_FILES})
+    # 提取文件名部分，去掉 asm 后缀后存储在 FILE_NAME 中
+    get_filename_component(FILE_NAME ${ASM_FILE} NAME_WE)
+
+    # 创建自定义目标
+    add_custom_target(${FILE_NAME}.o ALL
+        COMMAND nasm ${ASM_FILE} -o ${FILE_NAME}.o
+        DEPENDS ${ASM_FILE}
+        COMMENT "Building ${FILE_NAME}.o from ${FILE_NAME}.asm"
+    )
+endforeach()
