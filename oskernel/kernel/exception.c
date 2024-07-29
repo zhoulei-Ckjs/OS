@@ -1,4 +1,5 @@
 #include "../include/linux/types.h"
+#include "../include/linux/kernel.h"
 
 char *messages[] =
 {

@@ -23,6 +23,13 @@ interrupt_handler_entry:
 
     iret            ; 拿出 CPU 自动压入的寄存器的值，返回进入中断前的程序
 
+; 缺页中断，0x0e
+global page_fault
+page_fault:
+    push page_fault_msg
+    call printk
+    iret            ; 拿出 CPU 自动压入的寄存器的值，返回进入中断前的程序
+
 ; 键盘中断
 ; 进入中断处理程序之前，CPU会先往栈中压入值，不跨态压入三个值:
 ;	高地址		eflags
@@ -92,7 +99,7 @@ INTERRUPT_HANDLER 0x0b; segment not present
 
 INTERRUPT_HANDLER 0x0c; stack segment fault
 INTERRUPT_HANDLER 0x0d; general protection fault
-INTERRUPT_HANDLER 0x0e; page fault
+INTERRUPT_HANDLER 0x0e; 缺页中断
 INTERRUPT_HANDLER 0x0f; reserved
 
 INTERRUPT_HANDLER 0x10; x87 floating point exception
@@ -185,3 +192,5 @@ interrupt_handler_table:
 
 msg:
     db "interrupt_handler", 10, 0
+page_fault_msg:
+    db "page_fault occured", 10, 0

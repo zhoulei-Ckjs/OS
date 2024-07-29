@@ -1,6 +1,3 @@
-#include "../include/linux/kernel.h"
-#include "../include/linux/head.h"
-#include "../include/string.h"
 #include "../include/asm/system.h"
 #include "../include/linux/traps.h"
 
@@ -10,7 +7,8 @@ interrupt_gate_t interrupt_table[INTERRUPT_TABLE_SIZE] = {0};
 xdt_ptr_t idt_ptr;                          ///< 中断向量表 控制信息的定义。
 
 extern void interrupt_handler_entry();
-extern void keymap_handler_entry();         ///< 键盘中断
+extern void page_fault();                   ///< 缺页中断
+extern void keymap_handler_entry();         ///< 键盘中断，0x21
 extern void clock_handler_entry();          ///< 时钟中断
 
 /// 是在汇编中定义的
@@ -27,6 +25,12 @@ void idt_init()
         if (i <= 0x15)
         {
             handler = (int)interrupt_handler_table[i];
+        }
+
+        /// 缺页中断
+        if (0x0e == i)
+        {
+            handler = (int)page_fault;
         }
 
         /// 时钟中断
