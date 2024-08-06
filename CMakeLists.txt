@@ -5,11 +5,11 @@ project(kernel)
 set(CMAKE_C_COMPILER /usr/bin/gcc)
 set(CMAKE_CXX_COMPILER /usr/bin/g++)
 
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/init/ SRC)
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/ SRC)
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/chr_drv/ SRC)
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/lib/ SRC)
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/mm/ SRC)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/init/ C_SOURCES)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/ C_SOURCES)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/chr_drv/ C_SOURCES)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/lib/ C_SOURCES)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/oskernel/mm/ C_SOURCES)
 
 # .asm 编译
 file(GLOB ASM_SOURCES "${CMAKE_CURRENT_LIST_DIR}/oskernel/kernel/asm/*.asm")
@@ -25,10 +25,12 @@ set_source_files_properties(${SRC} PROPERTIES COMPILE_OPTIONS
 # 强制设置链接器为ld，而不是gcc
 set(CMAKE_C_LINK_EXECUTABLE "/usr/bin/ld <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
-add_executable(${PROJECT_NAME} ${SRC} ${ASM_SOURCES})
+add_executable(${PROJECT_NAME} ${C_SOURCES} ${ASM_SOURCES})
 
 # 设置目标的链接选项
 target_link_options(${PROJECT_NAME} PRIVATE -m elf_i386 -Ttext 0x1200)
+# -m 指定架构 elf_i386
+# -Ttext 指定函数入口地址 0x1200
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     # 拷贝机器码
