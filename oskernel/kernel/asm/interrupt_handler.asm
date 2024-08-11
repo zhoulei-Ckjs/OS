@@ -27,13 +27,14 @@ interrupt_handler_entry:
 ; cpu 压栈顺序
 ; ebp   高地址
 ; esp   低地址     Error Code
+; TODO 缺页中断 CPU 会压入哪些值
 global page_fault
 page_fault:
     xchg bx, bx
-    mov eax, [esp]          ; 拿到错误码
-    test eax, 1			    ; 0 表示缺页异常，1 表示由读写权限造成的异常。
-                            ; 若 eax 最后一位为 0，则 ZF = 1
-                            ; 若 eax 最后一位为 1，则 ZF = 0
+    mov eax, [esp]          ; 拿到错误码，0 表示缺页异常，1 表示由读写权限造成的异常。
+    test eax, 1			    ;
+                            ; 若缺页异常， eax 最后一位为 0，即(0 & 1 == 0)，则 ZF = 1
+                            ; 若读写权限异常， eax 最后一位为 1，即(1 & 1 != 0)，则 ZF = 0
     jne .do_wp_page         ; 若 ZF == 0，则跳转 do_wp_page; 否则继续向下执行
     push page_fault_msg
     call printk
@@ -208,6 +209,6 @@ interrupt_handler_table:
 msg:
     db "interrupt_handler", 10, 0
 page_fault_msg:
-    db "page_fault occured", 10, 0
+    db "page fault occured", 10, 0
 wp_msg:
     db "write protected occured", 10, 0
