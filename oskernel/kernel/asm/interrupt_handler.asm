@@ -2,6 +2,7 @@
 [SECTION .text]
 
 extern printk
+extern do_no_page               ; 缺页中断处理函数
 extern keymap_handler
 extern exception_handler
 
@@ -36,8 +37,7 @@ page_fault:
                             ; 若缺页异常， eax 最后一位为 0，即(0 & 1 == 0)，则 ZF = 1
                             ; 若读写权限异常， eax 最后一位为 1，即(1 & 1 != 0)，则 ZF = 0
     jne .do_wp_page         ; 若 ZF == 0，则跳转 do_wp_page; 否则继续向下执行
-    push page_fault_msg
-    call printk
+    call do_no_page
     iret            ; 拿出 CPU 自动压入的寄存器的值，返回进入中断前的程序
 ; 读写异常造成的中断
 .do_wp_page:
@@ -208,7 +208,5 @@ interrupt_handler_table:
 
 msg:
     db "interrupt_handler", 10, 0
-page_fault_msg:
-    db "page fault occured", 10, 0
 wp_msg:
     db "write protected occured", 10, 0

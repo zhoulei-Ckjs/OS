@@ -147,3 +147,11 @@ void free_page(void* p)
 
     printk("[%s]return: 0x%X, used: %d/%d pages\n", __FUNCTION__, p, g_physics_memory_map.bitmap_item_used, g_physics_memory_map.pages_total);
 }
+
+/**
+ * @brief 缺页中断处理函数
+ */
+void do_no_page()
+{
+    printk("page fault occured in %s\n", __FILE__);
+}
