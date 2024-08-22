@@ -31,11 +31,15 @@ interrupt_handler_entry:
 ; TODO 缺页中断 CPU 会压入哪些值
 global page_fault
 page_fault:
-    xchg bx, bx
+    xchg bx, bx             ; bochs调试断点
     mov eax, [esp]          ; 拿到错误码，0 表示缺页异常，1 表示由读写权限造成的异常。
     test eax, 1			    ;
                             ; 若缺页异常， eax 最后一位为 0，即(0 & 1 == 0)，则 ZF = 1
                             ; 若读写权限异常， eax 最后一位为 1，即(1 & 1 != 0)，则 ZF = 0
+    mov edx, cr2            ; 取引起页面异常的线性地址
+    push edx
+    push eax
+
     jne .do_wp_page         ; 若 ZF == 0，则跳转 do_wp_page; 否则继续向下执行
     call do_no_page
     iret            ; 拿出 CPU 自动压入的寄存器的值，返回进入中断前的程序

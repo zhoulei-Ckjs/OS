@@ -95,7 +95,7 @@ void memory_map_int()
     {
         g_physics_memory_map.map[i] = 1;
     }
-    
+
     printk("physical memory map starts here: 0x%X, used: %d pages\n",
            g_physics_memory_map.map, g_physics_memory_map.bitmap_item_used);
     printk("we start to allocate physical memory from : 0x%X(%dM)\n",
@@ -151,7 +151,9 @@ void free_page(void* p)
 /**
  * @brief 缺页中断处理函数
  */
-void do_no_page()
+void do_no_page(unsigned long error_code, unsigned long address)
 {
     printk("page fault occured in %s\n", __FILE__);
+    printk("error_code = %d\n", error_code);
+    printk("address = %x\n", address);
 }
