@@ -24,11 +24,26 @@ interrupt_handler_entry:
     iret            ; 拿出 CPU 自动压入的寄存器的值，返回进入中断前的程序
 
 ; 缺页中断，0x0e
+; cpu 压栈顺序
+; ebp   高地址
+; esp   低地址     Error Code
 global page_fault
 page_fault:
+    xchg bx, bx
+    mov eax, [esp]          ; 拿到错误码
+    test eax, 1			    ; 0 表示缺页异常，1 表示由读写权限造成的异常。
+                            ; 若 eax 最后一位为 0，则 ZF = 1
+                            ; 若 eax 最后一位为 1，则 ZF = 0
+    jne .do_wp_page         ; 若 ZF == 0，则跳转 do_wp_page; 否则继续向下执行
     push page_fault_msg
     call printk
     iret            ; 拿出 CPU 自动压入的寄存器的值，返回进入中断前的程序
+; 读写异常造成的中断
+.do_wp_page:
+    push wp_msg
+    call printk
+    iret
+
 
 ; 键盘中断
 ; 进入中断处理程序之前，CPU会先往栈中压入值，不跨态压入三个值:
@@ -194,3 +209,5 @@ msg:
     db "interrupt_handler", 10, 0
 page_fault_msg:
     db "page_fault occured", 10, 0
+wp_msg:
+    db "write protected occured", 10, 0
